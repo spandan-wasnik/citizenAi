@@ -106,8 +106,12 @@ class LinkChecker:
                 if attempt == self.retries:
                     raise _NetworkError("timeout", f"timed out after {attempt + 1} attempts") from exc
             except httpx.TransportError as exc:
+                message = f"{type(exc).__name__}: {str(exc)[:200]}"
+                if "CERTIFICATE_VERIFY_FAILED" in str(exc):
+                    # Retrying cannot fix a certificate problem, and verification is never switched off.
+                    raise _NetworkError("tls_error", message) from exc
                 if attempt == self.retries:
-                    raise _NetworkError("network_error", f"{type(exc).__name__}: {str(exc)[:200]}") from exc
+                    raise _NetworkError("network_error", message) from exc
             else:
                 if resp.status_code not in TRANSIENT_STATUSES or attempt == self.retries:
                     return resp

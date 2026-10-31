@@ -323,3 +323,26 @@ def test_network_failures_report_the_real_reason():
     r = checker.check("https://pmkisan.gov.in/p")
     assert r.outcome == "skipped_robots"
     assert "ConnectError" in r.detail and "CERTIFICATE_VERIFY_FAILED" in r.detail
+
+
+def test_certificate_failures_are_a_distinct_outcome_and_not_retried():
+    calls = {"n": 0}
+
+    def bad_cert(_req):
+        calls["n"] += 1
+        raise httpx.ConnectError("[SSL: CERTIFICATE_VERIFY_FAILED] unable to get local issuer certificate")
+
+    checker, _, _ = make_checker({"https://pmkisan.gov.in/robots.txt": bad_cert}, retries=2)
+    r = checker.check("https://pmkisan.gov.in/")
+    assert r.outcome == "skipped_robots" and "tls_error" in r.detail
+    assert calls["n"] == 1  # no retries for a certificate problem
+
+
+def test_tls_failure_on_a_page_is_reported_and_leaves_status_unchanged():
+    def bad_cert(_req):
+        raise httpx.ConnectError("[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed")
+
+    checker, _, _ = make_checker({"https://pmkisan.gov.in/p": bad_cert})
+    r = checker.check("https://pmkisan.gov.in/p")
+    assert r.outcome == "tls_error"
+    assert status_for_outcome(r.outcome, "verified_manual") == "verified_manual"

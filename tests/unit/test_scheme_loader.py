@@ -243,3 +243,10 @@ def test_registry_dates_are_stored_as_iso_text(engine):
     value = q(engine, "SELECT robots_checked_at FROM sources WHERE domain='pib.gov.in'")[0][0]
     assert value == "2026-10-31" and isinstance(value, str)
     assert q(engine, "SELECT robots_checked_at FROM sources WHERE domain='pmkisan.gov.in'")[0][0] is None
+
+
+def test_registry_records_india_gov_in_terms_from_the_owners_paste():
+    entry = REGISTRY["india.gov.in"]
+    assert entry["reuse_policy"] == "permission_required"
+    assert entry["automated_access"] == "unknown"  # the policy is silent on it
+    assert REGISTRY["scholarships.gov.in"]["reuse_policy"] == "unknown"  # only a privacy policy was supplied

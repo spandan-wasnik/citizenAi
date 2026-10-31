@@ -28,11 +28,12 @@ Goal: a working skeleton on solid ground, with the riskiest data-model decision 
 - [x] **1.4 Database (28 tables, FTS5 keyword index, append-only audit log, 20 tests incl. migration/model drift check):** SQLAlchemy models, Alembic initial migration, seeded `profile_fields` registry; tests for foreign keys and CHECK constraints
 - [x] **1.5 Scheme data format (schema, source registry, validator, idempotent loader with human_reviewed protection; 73 tests; no real scheme data yet, that is 1.8):** Pydantic schema for `data/schemes/*.yaml`, `validate_schemes.py`, idempotent seed loader; tests rejecting unsourced rules, unknown fields, and bad enum values; UNKNOWN handled explicitly
 - [x] **1.6 Link classifier + robots-aware link checker** (suspicious/look-alike detection, robots.txt per RFC 9309, throttle, backoff, redirect safety, registry policy; 78 tests, all with mocked HTTP)
-- [~] **1.6b Live run on your laptop (robots.txt done 2026-10-31: 5 of 6 sites readable and root allowed; pmkisan.gov.in unreachable, reason still to be diagnosed; terms pages of scholarships/mahadbt/india.gov.in still to be read):** `python scripts/verify_sources.py --robots`, then read the terms of scholarships.gov.in, mahadbt.maharashtra.gov.in and india.gov.in and update `data/sources/registry.yaml`
+- [~] **1.6b Live checks on your laptop:** robots.txt done (5 of 6 readable). pmkisan.gov.in fails TLS verification (incomplete certificate chain, automated checks skipped on purpose). india.gov.in terms recorded. Still open: terms of scholarships.gov.in and mahadbt.maharashtra.gov.in (only a privacy policy and an unlabelled security policy were supplied), and the terms URL for india.gov.in
 - [ ] **1.7 Eligibility core (pulled forward from Phase 2):** rule tree, three-valued evaluator, outcome mapping, per-rule trace; hypothesis boundary tests
 - [ ] **1.8 Seed 5 schemes**, chosen so the rule model is stressed: an income-threshold scholarship, an occupation-based farmer scheme, an age-based pension, a state-specific scheme, a gender-specific scheme. Each gets a verification state and source references.
 - [ ] **1.9 Basic API:** `/health`, scheme list/search/detail, evaluate-eligibility endpoint; structured errors; tests (success, invalid input, missing record)
 - [ ] **1.10 Basic Streamlit UI:** scheme browser and detail page showing sources, link verification badges and UNKNOWN fields; no placeholder buttons
+  - UI rule from india.gov.in's hyperlink policy: official links open in a new browser tab; never embed their pages in frames/iframes
 
 **Exit criteria:** `pytest` green here; `verify_windows.ps1` passes on your laptop; 5 validated schemes browsable through the real API; every displayed link shows its true verification state.
 

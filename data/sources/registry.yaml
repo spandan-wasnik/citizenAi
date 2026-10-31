@@ -16,6 +16,9 @@ sources:
     automated_access: prohibited     # terms prohibit bots/scrapers without written authorization
     robots_checked_at: null          # robots.txt could not be fetched in the research session
 
+  # pmkisan.gov.in: from the owner's Windows Python, TLS fails with 'unable to get local issuer certificate', which usually
+  # means the server omits part of its certificate chain (cause not confirmed). Automated checks are therefore skipped.
+  # Never disable certificate verification to work around this; links here are verified by a person in a browser.
   - domain: pmkisan.gov.in
     organization: PM-KISAN, Department of Agriculture & Farmers Welfare
     source_type: official_portal
@@ -42,7 +45,11 @@ sources:
      authority_tier: 1, terms_url: null, reuse_policy: unknown, automated_access: unknown, robots_checked_at: 2026-10-31}
   - {domain: mahadbt.maharashtra.gov.in, organization: MahaDBT (Government of Maharashtra), source_type: official_portal,
      authority_tier: 1, terms_url: null, reuse_policy: unknown, automated_access: unknown, robots_checked_at: 2026-10-31}
+  # india.gov.in terms, pasted by the owner 2026-10-31 (terms_url still to be supplied): reproduction needs permission by
+  # email first; must be accurate, not derogatory/misleading, source prominently credited, third-party material excluded.
+  # Linking to its pages needs no permission, but its pages must NOT be loaded inside frames/iframes (open in a new window).
+  # The policy is silent on automated access (robots.txt allows the root and asks for Crawl-delay 10).
   - {domain: india.gov.in, organization: National Portal of India, source_type: official_portal,
-     authority_tier: 1, terms_url: null, reuse_policy: unknown, automated_access: unknown, robots_checked_at: 2026-10-31}
+     authority_tier: 1, terms_url: null, reuse_policy: permission_required, automated_access: unknown, robots_checked_at: 2026-10-31}
   - {domain: maharashtra.gov.in, organization: Government of Maharashtra, source_type: official_portal,
      authority_tier: 1, terms_url: null, reuse_policy: unknown, automated_access: unknown, robots_checked_at: 2026-10-31}
