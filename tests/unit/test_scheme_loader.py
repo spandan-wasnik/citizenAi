@@ -236,3 +236,10 @@ def test_unicode_names_are_stored_intact(engine):
     seed(engine, [d])
     assert q(engine, "SELECT official_name FROM scheme_translations WHERE lang='hi'")[0][0] == "परीक्षण छात्रवृत्ति"
     assert q(engine, "SELECT name FROM document_translations WHERE lang='hi'")[0][0] == "आय प्रमाण पत्र"
+
+
+def test_registry_dates_are_stored_as_iso_text(engine):
+    seed(engine, [base()])
+    value = q(engine, "SELECT robots_checked_at FROM sources WHERE domain='pib.gov.in'")[0][0]
+    assert value == "2026-10-31" and isinstance(value, str)
+    assert q(engine, "SELECT robots_checked_at FROM sources WHERE domain='pmkisan.gov.in'")[0][0] is None

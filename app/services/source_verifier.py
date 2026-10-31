@@ -107,7 +107,7 @@ class LinkChecker:
                     raise _NetworkError("timeout", f"timed out after {attempt + 1} attempts") from exc
             except httpx.TransportError as exc:
                 if attempt == self.retries:
-                    raise _NetworkError("network_error", type(exc).__name__) from exc
+                    raise _NetworkError("network_error", f"{type(exc).__name__}: {str(exc)[:200]}") from exc
             else:
                 if resp.status_code not in TRANSIENT_STATUSES or attempt == self.retries:
                     return resp
@@ -143,7 +143,7 @@ class LinkChecker:
             else:
                 return None, "robots.txt redirected too many times; not fetching"
         except _NetworkError as exc:
-            return None, f"robots.txt unreachable ({exc.kind}); not fetching"
+            return None, f"robots.txt unreachable ({exc.kind}: {exc.detail}); not fetching"
         parser = robotparser.RobotFileParser()
         if 200 <= resp.status_code < 300:
             parser.parse(resp.text.splitlines())

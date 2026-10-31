@@ -134,6 +134,8 @@ def sync_registry(session: Session, registry: dict[str, dict]) -> dict[str, int]
     for domain, entry in registry.items():
         row = session.scalar(select(m.Source).where(m.Source.domain == domain))
         values = {k: entry.get(k) for k in REGISTRY_FIELDS - {"domain"}}
+        if values.get("robots_checked_at") is not None:  # YAML parses dates; the column is ISO text
+            values["robots_checked_at"] = str(values["robots_checked_at"])
         if row is None:
             row = m.Source(domain=domain, **values)
             session.add(row)

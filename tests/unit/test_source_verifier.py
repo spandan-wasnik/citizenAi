@@ -315,3 +315,11 @@ def test_verify_sources_script_never_contacts_prohibited_sites(monkeypatch, caps
     assert "myscheme" in out and "no request sent" in out
     assert all("myscheme" not in u for u in net.urls())
     assert net.urls() == ["https://pmkisan.gov.in/robots.txt"]
+
+
+def test_network_failures_report_the_real_reason():
+    checker, _, _ = make_checker({"https://pmkisan.gov.in/robots.txt": httpx.ConnectError("[SSL: CERTIFICATE_VERIFY_FAILED] boom")},
+                                 retries=0)
+    r = checker.check("https://pmkisan.gov.in/p")
+    assert r.outcome == "skipped_robots"
+    assert "ConnectError" in r.detail and "CERTIFICATE_VERIFY_FAILED" in r.detail

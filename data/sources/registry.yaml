@@ -32,14 +32,17 @@ sources:
     terms_url: https://pib.gov.in/Content/102_2_Copyright-Policy.aspx
     reuse_policy: free_with_attribution  # no prior approval; credit, faithful, third-party excluded
     automated_access: unknown
-    robots_checked_at: null
+    robots_checked_at: 2026-10-31
 
   # Supplied by the project owner as intended sources; terms NOT yet reviewed.
+# robots_checked_at 2026-10-31: robots.txt fetched from the owner's laptop; the root path was allowed for
+# the CitizenAssistAI agent. india.gov.in declares Crawl-delay 10 (the checker honours it automatically).
+# pmkisan.gov.in robots.txt could NOT be fetched (network error), so it is treated as do-not-fetch.
   - {domain: scholarships.gov.in, organization: National Scholarship Portal, source_type: official_portal,
-     authority_tier: 1, terms_url: null, reuse_policy: unknown, automated_access: unknown, robots_checked_at: null}
+     authority_tier: 1, terms_url: null, reuse_policy: unknown, automated_access: unknown, robots_checked_at: 2026-10-31}
   - {domain: mahadbt.maharashtra.gov.in, organization: MahaDBT (Government of Maharashtra), source_type: official_portal,
-     authority_tier: 1, terms_url: null, reuse_policy: unknown, automated_access: unknown, robots_checked_at: null}
+     authority_tier: 1, terms_url: null, reuse_policy: unknown, automated_access: unknown, robots_checked_at: 2026-10-31}
   - {domain: india.gov.in, organization: National Portal of India, source_type: official_portal,
-     authority_tier: 1, terms_url: null, reuse_policy: unknown, automated_access: unknown, robots_checked_at: null}
+     authority_tier: 1, terms_url: null, reuse_policy: unknown, automated_access: unknown, robots_checked_at: 2026-10-31}
   - {domain: maharashtra.gov.in, organization: Government of Maharashtra, source_type: official_portal,
-     authority_tier: 1, terms_url: null, reuse_policy: unknown, automated_access: unknown, robots_checked_at: null}
+     authority_tier: 1, terms_url: null, reuse_policy: unknown, automated_access: unknown, robots_checked_at: 2026-10-31}
