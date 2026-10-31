@@ -34,3 +34,9 @@ API keys go only in `.env` (git-ignored). `.env.example` must keep secret values
 ## LLM modes
 
 `LLM_PROVIDER=none` (default) runs without any LLM. `openai` and `ollama` are selected in `.env`; if the chosen provider is incomplete the app falls back to `none` and reports why.
+
+## Database
+
+```powershell
+python scripts/init_db.py          # creates/upgrades data/citizenassist.db and seeds the field registry
+```

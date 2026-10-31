@@ -24,8 +24,8 @@ Goal: a working skeleton on solid ground, with the riskiest data-model decision 
 
 - [x] **1.1 Scaffold:** repo layout, `pyproject.toml`, `requirements.txt` / `requirements-ml.txt`, `.env.example`, `.gitignore`, `config.py`
 - [x] **1.2 Logging with PII redaction**, plus tests that sample PII never reaches logs
-- [~] **1.3 `scripts/verify_windows.ps1` (Python checks tested here on Linux; the Windows run is still pending):** checks Python version, UTF-8 mode, SQLite FTS5 on Windows, required imports, free RAM. *You run it and paste the output.*
-- [ ] **1.4 Database:** SQLAlchemy models, Alembic initial migration, seeded `profile_fields` registry; tests for foreign keys and CHECK constraints
+- [x] **1.3 `scripts/verify_windows.ps1` (passed on your Windows laptop 2026-10-31: Python 3.13.14, SQLite 3.50.4 FTS5 OK; only 0.7 GB RAM was free):** checks Python version, UTF-8 mode, SQLite FTS5 on Windows, required imports, free RAM. *You run it and paste the output.*
+- [x] **1.4 Database (28 tables, FTS5 keyword index, append-only audit log, 20 tests incl. migration/model drift check):** SQLAlchemy models, Alembic initial migration, seeded `profile_fields` registry; tests for foreign keys and CHECK constraints
 - [ ] **1.5 Scheme data format:** Pydantic schema for `data/schemes/*.yaml`, `validate_schemes.py`, idempotent seed loader; tests rejecting unsourced rules, unknown fields, and bad enum values; UNKNOWN handled explicitly
 - [ ] **1.6 Source registry + link classifier:** domain classification (pure function), robots-aware link checker with mocked-HTTP tests; terms/robots review of scholarships.gov.in, mahadbt, india.gov.in (live checks run on your laptop)
 - [ ] **1.7 Eligibility core (pulled forward from Phase 2):** rule tree, three-valued evaluator, outcome mapping, per-rule trace; hypothesis boundary tests
