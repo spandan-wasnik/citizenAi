@@ -1,0 +1,45 @@
+# Registry of source websites. A scheme file may only cite sources whose domain is listed
+# here, so reuse terms and automated-access policy are decided once, per site.
+#
+# Values below record what was READ on 2026-10-31. "unknown" means the terms have not been
+# reviewed yet; the system treats unknown as "do not automate, do not bulk copy".
+#   reuse_policy:     permission_required | free_with_attribution | automated_prohibited | unknown
+#   automated_access: allowed | written_permission_on_file | prohibited | unknown
+#   authority_tier:   1 = official government publisher, 2 = official but secondary, 3 = other
+sources:
+  - domain: myscheme.gov.in
+    organization: myScheme (Government of India)
+    source_type: official_portal
+    authority_tier: 1
+    terms_url: https://www.myscheme.gov.in/terms-of-use
+    reuse_policy: unknown            # terms set no separate reuse rules for site content
+    automated_access: prohibited     # terms prohibit bots/scrapers without written authorization
+    robots_checked_at: null          # robots.txt could not be fetched in the research session
+
+  - domain: pmkisan.gov.in
+    organization: PM-KISAN, Department of Agriculture & Farmers Welfare
+    source_type: official_portal
+    authority_tier: 1
+    terms_url: https://pmkisan.gov.in/CopyrightPolicy.aspx
+    reuse_policy: permission_required   # emailed permission first; faithful, credited, not misleading
+    automated_access: unknown
+    robots_checked_at: null
+
+  - domain: pib.gov.in
+    organization: Press Information Bureau
+    source_type: ministry_page
+    authority_tier: 1
+    terms_url: https://pib.gov.in/Content/102_2_Copyright-Policy.aspx
+    reuse_policy: free_with_attribution  # no prior approval; credit, faithful, third-party excluded
+    automated_access: unknown
+    robots_checked_at: null
+
+  # Supplied by the project owner as intended sources; terms NOT yet reviewed.
+  - {domain: scholarships.gov.in, organization: National Scholarship Portal, source_type: official_portal,
+     authority_tier: 1, terms_url: null, reuse_policy: unknown, automated_access: unknown, robots_checked_at: null}
+  - {domain: mahadbt.maharashtra.gov.in, organization: MahaDBT (Government of Maharashtra), source_type: official_portal,
+     authority_tier: 1, terms_url: null, reuse_policy: unknown, automated_access: unknown, robots_checked_at: null}
+  - {domain: india.gov.in, organization: National Portal of India, source_type: official_portal,
+     authority_tier: 1, terms_url: null, reuse_policy: unknown, automated_access: unknown, robots_checked_at: null}
+  - {domain: maharashtra.gov.in, organization: Government of Maharashtra, source_type: official_portal,
+     authority_tier: 1, terms_url: null, reuse_policy: unknown, automated_access: unknown, robots_checked_at: null}

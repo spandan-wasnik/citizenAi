@@ -40,3 +40,15 @@ API keys go only in `.env` (git-ignored). `.env.example` must keep secret values
 ```powershell
 python scripts/init_db.py          # creates/upgrades data/citizenassist.db and seeds the field registry
 ```
+
+## Scheme data files
+
+Schemes live in `data/schemes/<scheme_id>.yaml`; copy `data/schemes/_template.yaml` (all values are placeholders)
+and fill in only what an official page states. Sources must come from a domain listed in `data/sources/registry.yaml`.
+
+```powershell
+python scripts/validate_schemes.py   # check every file, writes nothing
+python scripts/seed_database.py      # validate, then load into the database (idempotent)
+```
+
+A scheme marked `human_reviewed` in the database is never overwritten by a changed file unless you pass `--force`.

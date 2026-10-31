@@ -1,0 +1,84 @@
+# TEMPLATE: copy to data/schemes/<scheme_id>.yaml (the file name must equal scheme_id).
+# Every value below is a PLACEHOLDER, not real scheme data. Files starting with "_" are never loaded.
+# Rule of thumb: if you cannot find a fact on an official page, LEAVE IT OUT. Never guess.
+# Money is whole rupees (1.5 lakh = 150000). Ranges are inclusive. Dates are YYYY-MM-DD.
+
+scheme_id: example-scheme            # lowercase slug; must match the file name
+level: state                         # central | state | ut | local
+state_code: MH                       # required unless level is central (ISO 3166-2:IN)
+ministry: null
+department: null                    # official department name
+status: unknown                      # active | closed | suspended | unknown
+volatility: stable                   # volatile schemes must set next_review_due once verified
+verification_status: draft           # draft | source_verified | human_reviewed
+rules_complete: false                # true only when ALL official conditions are modelled below
+last_verified: null                  # required once not draft
+next_review_due: null
+application_open_date: null          # only if officially stated
+application_deadline: null           # only if officially stated
+tags: [example]
+
+translations:
+  en:
+    official_name: REPLACE WITH THE OFFICIAL SCHEME NAME
+    short_description: null
+    benefits: null                   # null means UNKNOWN and is shown that way to users
+    target_beneficiaries: null
+    origin: official                 # official | curated | machine
+  # hi: {...}  mr: {...}  optional; label machine translations origin: machine
+
+sources:                             # pages you actually read; the domain must be in data/sources/registry.yaml
+  - key: s1
+    url: https://pib.gov.in/REPLACE-WITH-THE-REAL-OFFICIAL-PAGE
+    title: REPLACE
+    doc_type: html                   # html | pdf | docx | json | csv | curated_note
+    retrieved_at: 2026-01-01
+    retrieval_method: manual_curation    # manual_curation | admin_upload | automated_fetch
+
+links:
+  - url: https://pib.gov.in/REPLACE-WITH-THE-REAL-OFFICIAL-PAGE
+    link_type: information           # application | information | status_tracking | helpline | guidelines
+    verification_status: unverified  # verified_manual needs verified_by + verified_at (a person, not a tool)
+
+eligibility:                         # AND/OR tree; omit entirely if no rule has been verified yet
+  logic: AND
+  items:
+    - rule: {field: age_years, op: between, value: [18, 35], source: s1, locator: "para 2"}
+    - rule: {field: annual_family_income, op: lte, value: 250000, source: s1, locator: "para 3"}
+    - group:
+        logic: OR
+        items:
+          - rule: {field: occupation, op: eq, value: student, source: s1, locator: "para 4"}
+          - rule: {field: employment_status, op: eq, value: unemployed, source: s1, locator: "para 4"}
+    # A rule that cannot be self-assessed (e.g. "as per official verification"):
+    # - rule: {field: age_years, op: gte, value: 18, evaluability: official_only, source: s1, locator: "x"}
+
+exclusions:                          # a PASS on any of these makes the person ineligible
+  - {field: receives_other_scholarship, op: is_true, source: s1, locator: "para 5"}
+
+condition_groups:                    # who a conditional document applies to
+  female_applicants:
+    logic: AND
+    items:
+      - rule: {field: gender, op: eq, value: female, source: s1, locator: "annex 1"}
+
+documents:
+  - code: income_certificate         # lower_snake_case, shared across schemes
+    requirement_type: mandatory      # mandatory | conditional | optional
+    names: {en: Income Certificate}
+    purpose_note: null
+    source: s1
+    locator: "annex 1"
+  - code: example_conditional_document
+    requirement_type: conditional
+    applies_if: female_applicants
+    names: {en: Example conditional document}
+    source: s1
+    locator: "annex 1"
+
+steps:
+  en:
+    - instruction: REPLACE with the official step, in your own words
+      link: https://pib.gov.in/REPLACE-WITH-THE-REAL-OFFICIAL-PAGE   # must be listed in links
+      source: s1
+      locator: "section 3"

@@ -1,6 +1,6 @@
 """Alembic environment. URL precedence: -x/attributes url, then DATABASE_URL from settings."""
 from alembic import context
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine
 
 from app.config import get_settings
 from app.database.models import Base
@@ -16,9 +16,9 @@ def _url() -> str:
 def run_migrations_online() -> None:
     connectable = config.attributes.get("connection")
     if connectable is None:
+        # Foreign keys stay OFF during migrations on purpose: SQLite batch operations rebuild
+        # tables, and with FKs ON a rebuild of a parent table can cascade-delete child rows.
         engine = create_engine(_url())
-        if engine.dialect.name == "sqlite":
-            event.listen(engine, "connect", lambda c, _r: c.execute("PRAGMA foreign_keys=ON"))
         with engine.connect() as connection:
             _run(connection)
     else:

@@ -1,6 +1,6 @@
-"""Canonical registry of profile fields that eligibility rules may reference.
+"""Seeds the profile-field registry table from app.domain.fields (the single source of truth).
 
-Adding a field here (and re-running the seed) is how the rule vocabulary grows; data
+Adding a field there (and re-running the seed) is how the rule vocabulary grows; data
 files that mention an unregistered field fail validation instead of silently never matching.
 """
 from __future__ import annotations
@@ -11,36 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.database.models import ProfileField
-
-# (field_key, value_type, enum_values, is_sensitive, description)
-PROFILE_FIELDS: list[tuple[str, str, list[str] | None, int, str]] = [
-    ("age_years", "int", None, 0, "Age in completed years (relative to the rule's as_of date when given)"),
-    ("state_code", "enum", None, 0, "State or UT of residence, ISO 3166-2:IN code such as MH"),
-    ("domicile_state_code", "enum", None, 0, "State of domicile (can differ from current residence)"),
-    ("study_state_code", "enum", None, 0, "State where the person studies"),
-    ("district", "string", None, 0, "District of residence"),
-    ("residence_area", "enum", ["rural", "urban"], 0, "Rural or urban residence"),
-    ("annual_family_income", "money_inr", None, 0, "Total annual family income in INR"),
-    ("annual_individual_income", "money_inr", None, 0, "Annual income of the applicant alone in INR"),
-    ("family_size", "int", None, 0, "Number of family members"),
-    ("occupation", "enum", ["student", "farmer", "self_employed", "salaried", "unemployed",
-                            "homemaker", "retired", "artisan", "laborer", "other"], 0, "Primary occupation"),
-    ("employment_status", "enum", ["employed", "unemployed", "self_employed", "student", "retired"], 0,
-     "Current employment status"),
-    ("education_level", "enum", ["none", "primary", "secondary", "higher_secondary", "diploma",
-                                 "undergraduate", "postgraduate", "doctorate"], 0, "Highest or current education level"),
-    ("is_enrolled_in_education", "bool", None, 0, "Currently enrolled in an education institution"),
-    ("owns_agricultural_land", "bool", None, 0, "Owns cultivable agricultural land"),
-    ("has_bank_account", "bool", None, 0, "Has a bank account (existence only; no account details are collected)"),
-    ("receives_other_scholarship", "bool", None, 0, "Currently receives another scholarship (exclusion checks)"),
-    ("gender", "enum", ["female", "male", "other"], 1, "Gender; collected only when a scheme rule needs it"),
-    ("social_category", "enum", ["general", "sc", "st", "obc", "ews", "other"], 1,
-     "Social category; collected only when a scheme rule needs it"),
-    ("disability_status", "bool", None, 1, "Has a disability; collected only when a scheme rule needs it"),
-    ("marital_status", "enum", ["unmarried", "married", "widowed", "divorced", "separated"], 1,
-     "Marital status; collected only when a scheme rule needs it"),
-]
-
+from app.domain.fields import PROFILE_FIELDS
 
 def seed_profile_fields(session: Session) -> int:
     """Insert or update the registry. Idempotent. Returns the number of rows changed."""

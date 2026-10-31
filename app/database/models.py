@@ -165,6 +165,7 @@ class Scheme(Base):
     next_review_due: Mapped[str | None] = mapped_column(Date)
     application_open_date: Mapped[str | None] = mapped_column(Date)
     application_deadline: Mapped[str | None] = mapped_column(Date)
+    source_hash: Mapped[str | None] = mapped_column(Text)  # hash of the data file last loaded
     created_at: Mapped[str] = mapped_column(Text)
     updated_at: Mapped[str] = mapped_column(Text)
 

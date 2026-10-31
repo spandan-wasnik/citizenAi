@@ -227,3 +227,24 @@ def test_deleting_a_source_document_cascades_to_chunks_and_index(base_rows):
 def test_duplicate_chunk_text_in_same_document_is_rejected(base_rows):
     run(base_rows, "INSERT INTO chunks(doc_id,text,text_hash) VALUES(1,'x','same')")
     rejected(base_rows, "INSERT INTO chunks(doc_id,text,text_hash) VALUES(1,'x','same')")
+
+
+# ---------------------------------------------------------------- migrating a populated database
+def test_upgrading_a_populated_database_keeps_child_rows(tmp_path):
+    url = f"sqlite:///{tmp_path / 'populated.db'}"
+    cfg = Config(str(ROOT / "alembic.ini"))
+    cfg.set_main_option("script_location", str(ROOT / "migrations"))
+    cfg.set_main_option("sqlalchemy.url", url)
+    command.upgrade(cfg, "0002")
+    eng = make_engine(url)
+    run(eng, "INSERT INTO schemes(scheme_id,level,created_at,updated_at) VALUES('s1','central','t','t')")
+    run(eng, "INSERT INTO scheme_tags VALUES('s1','scholarship')")
+    run(eng, "INSERT INTO rule_groups(scheme_id,logic,purpose) VALUES('s1','AND','eligibility')")
+    eng.dispose()
+    command.upgrade(cfg, "head")
+    eng = make_engine(url)
+    assert run(eng, "SELECT COUNT(*) FROM schemes").scalar() == 1
+    assert run(eng, "SELECT COUNT(*) FROM scheme_tags").scalar() == 1
+    assert run(eng, "SELECT COUNT(*) FROM rule_groups").scalar() == 1
+    assert "source_hash" in {c["name"] for c in inspect(eng).get_columns("schemes")}
+    eng.dispose()
