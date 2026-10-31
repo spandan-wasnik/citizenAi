@@ -1,0 +1,31 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.hypothesis/
+.ruff_cache/
+*.egg-info/
+
+# Local data (never commit uploads, indexes or databases)
+*.db
+*.db-wal
+*.db-shm
+data/documents/*
+data/processed/*
+data/vector_store/*
+!data/documents/.gitkeep
+!data/processed/.gitkeep
+!data/vector_store/.gitkeep
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

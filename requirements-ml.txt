@@ -1,0 +1,5 @@
+# Optional ML extras (Phase 3). Install only after the core works.
+# On Windows, install a CPU-only PyTorch first if you want to avoid a large download;
+# see README. The app keeps working without these (keyword search + extractive answers).
+sentence-transformers>=3.0
+faiss-cpu>=1.8
