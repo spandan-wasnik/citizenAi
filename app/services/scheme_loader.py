@@ -24,6 +24,7 @@ from sqlalchemy.orm import Session
 
 from app.database import models as m
 from app.domain.domains import classify_domain, host_of
+from app.domain.link_policy import assess_url
 from app.domain.scheme_schema import GroupSpec, SchemeFile
 
 REGISTRY_FIELDS = {"domain", "organization", "source_type", "authority_tier", "terms_url",
@@ -91,6 +92,10 @@ def load_scheme_file(path: Path, registry: dict[str, dict]) -> SchemeFile:
                             "(add it to data/sources/registry.yaml with its reuse terms first)")
         elif registry[host].get("automated_access") == "prohibited" and src.retrieval_method == "automated_fetch":
             problems.append(f"source '{src.key}': automated fetching from '{host}' is prohibited by its terms")
+    for link in scheme.links:
+        assessment = assess_url(link.url, tuple(registry))
+        if assessment.suspicious:
+            problems.append(f"link {link.url}: flagged suspicious ({', '.join(assessment.danger)})")
     if problems:
         raise SchemeFileError(path, problems)
     return scheme

@@ -52,3 +52,14 @@ python scripts/seed_database.py      # validate, then load into the database (id
 ```
 
 A scheme marked `human_reviewed` in the database is never overwritten by a changed file unless you pass `--force`.
+
+## Checking official links (run on your machine)
+
+```powershell
+python scripts/verify_sources.py --robots                       # robots.txt of each registry site
+python scripts/verify_sources.py --url https://pmkisan.gov.in/  # assess and check one URL
+python scripts/verify_sources.py                                # check every link in the database
+```
+
+The checker obeys robots.txt, spaces requests per site, never contacts sites whose terms prohibit automated access,
+and never fetches suspicious links. A reachable page is **not** proof a link is official; only a person can mark a link `verified_manual`.

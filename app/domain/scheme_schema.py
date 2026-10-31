@@ -19,6 +19,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from app.domain.domains import classify_domain, host_of
 from app.domain.fields import FIELD_TYPES, STATE_CODES, allowed_values
+from app.domain.link_policy import assess_url
 
 SLUG = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 CODE = re.compile(r"^[a-z0-9]+(_[a-z0-9]+)*$")
@@ -140,6 +141,9 @@ class LinkSpec(Strict):
 
     @model_validator(mode="after")
     def _verification_rules(self) -> "LinkSpec":
+        assessment = assess_url(self.url)
+        if assessment.suspicious:
+            raise ValueError(f"link is flagged suspicious ({', '.join(assessment.danger)}); it cannot be used")
         if self.verification_status == "verified_manual" and not (self.verified_by and self.verified_at):
             raise ValueError("verified_manual needs verified_by and verified_at")
         if self.official_other_verified and not self.notes:
