@@ -53,3 +53,9 @@ sources:
      authority_tier: 1, terms_url: null, reuse_policy: permission_required, automated_access: unknown, robots_checked_at: 2026-10-31}
   - {domain: maharashtra.gov.in, organization: Government of Maharashtra, source_type: official_portal,
      authority_tier: 1, terms_url: null, reuse_policy: unknown, automated_access: unknown, robots_checked_at: 2026-10-31}
+
+  # PFRDA is the statutory pension regulator that administers the Atal Pension Yojana. Its domain is .org.in, not
+  # .gov.in, so the link policy treats it as "unrecognized": links to it can be verified_manual only with
+  # official_other_verified and a note. Terms and robots.txt have NOT been reviewed.
+  - {domain: pfrda.org.in, organization: Pension Fund Regulatory and Development Authority, source_type: official_portal,
+     authority_tier: 1, terms_url: null, reuse_policy: unknown, automated_access: unknown, robots_checked_at: null}

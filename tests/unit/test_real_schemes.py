@@ -60,3 +60,36 @@ def test_pm_kisan_asks_about_land_when_unknown(engine):
     assert a.status is Status.INSUFFICIENT_INFORMATION
     assert [m.field for m in a.missing_fields] == ["owns_agricultural_land"]
     assert all(r.rule.source_url.startswith("https://pmkisan.gov.in/") and r.rule.locator for r in a.results)
+
+
+# ----------------------------------------------------------------- atal-pension-yojana
+def test_apy_age_boundaries_and_income_tax_exclusion(engine):
+    base = {"is_or_was_income_tax_payer": False}
+    for age, expected_top in [(17, "FAIL"), (18, "PASS"), (40, "PASS"), (41, "FAIL")]:
+        a = run(engine, "atal-pension-yojana", {**base, "age_years": age})
+        assert a.top.value == expected_top, age
+    excluded = run(engine, "atal-pension-yojana", {"age_years": 30, "is_or_was_income_tax_payer": True})
+    assert excluded.top.value == "FAIL"
+
+
+def test_apy_does_not_give_a_firm_verdict_while_citizenship_is_unmodelled(engine):
+    a = run(engine, "atal-pension-yojana", {"age_years": 30, "is_or_was_income_tax_payer": False})
+    assert a.status is Status.REQUIRES_OFFICIAL_VERIFICATION and "rules_incomplete" in a.reasons
+    assert "scheme_status_unknown" not in a.reasons  # status is 'active'
+
+
+def test_apy_asks_for_the_decisive_missing_answers_and_flags_the_sensitive_one(engine):
+    a = run(engine, "atal-pension-yojana", {"age_years": 30})
+    assert a.status is Status.INSUFFICIENT_INFORMATION
+    assert [(m.field, m.sensitive) for m in a.missing_fields] == [("is_or_was_income_tax_payer", True)]
+    # an age outside the range settles it without asking about tax
+    out = run(engine, "atal-pension-yojana", {"age_years": 50})
+    assert out.missing_fields == ()
+
+
+def test_shared_document_code_is_consistent_across_schemes(engine):
+    from sqlalchemy import text
+    with session_scope(engine) as s:
+        rows = s.execute(text("SELECT scheme_id, requirement_type FROM scheme_documents "
+                              "WHERE document_code='aadhaar' ORDER BY scheme_id")).all()
+    assert [r[0] for r in rows] == ["atal-pension-yojana", "pm-kisan"]

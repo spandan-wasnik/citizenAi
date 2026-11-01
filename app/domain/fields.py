@@ -40,6 +40,8 @@ PROFILE_FIELDS: list[tuple[str, str, list[str] | None, int, str]] = [
     ("disability_status", "bool", None, 1, "Has a disability; collected only when a scheme rule needs it"),
     ("marital_status", "enum", ["unmarried", "married", "widowed", "divorced", "separated"], 1,
      "Marital status; collected only when a scheme rule needs it"),
+    ("is_or_was_income_tax_payer", "bool", None, 1,
+     "Is, or has ever been, an income-tax payer under the Income-tax Act, 1961; collected only when a scheme rule needs it"),
 ]
 
 _STATE_FIELDS = {"state_code", "domicile_state_code", "study_state_code"}

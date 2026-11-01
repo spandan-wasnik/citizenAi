@@ -26,6 +26,7 @@ LABELS = {"en": {
     "owns_agricultural_land": "Owns agricultural land", "has_bank_account": "Has a bank account",
     "receives_other_scholarship": "Receives another scholarship", "gender": "Gender",
     "social_category": "Social category", "disability_status": "Disability", "marital_status": "Marital status",
+    "is_or_was_income_tax_payer": "Is or has been an income-tax payer",
 }}
 
 STATUS_TEXT = {"en": {

@@ -1,0 +1,73 @@
+# Atal Pension Yojana (APY). Built ONLY from four answers on the PFRDA FAQ page, copied by the project owner on
+# 2026-11-01: "Who can subscribe to APY?", "What is the procedure for opening APY Account?", "Can an Income-tax payer
+# open new APY account?" and "Whether an employee of Central/State Government ... or a NPS subscriber can subscribe".
+# NOT in those answers, so deliberately absent: contribution amounts, pension slabs, benefits, nominee rules,
+# exit rules. Benefits stay UNKNOWN until read from an official page.
+# Not modelled as rules: (1) "citizens of India" (no citizenship field), (2) the savings-account condition: the FAQ
+# itself says a person without one can open one when enrolling, so having no account is not a reason to reject.
+# Age: the FAQ says "between 18 and 40 years"; this file reads that as 18 to 40 inclusive. CONFIRM against the
+# subscriber brochure before treating the boundary ages as settled.
+scheme_id: atal-pension-yojana
+level: central
+state_code: null
+ministry: null
+department: null
+status: active                       # the FAQ says in the present tense that "APY is open to all citizens of India"
+volatility: volatile                 # eligibility already changed once (1 October 2022)
+verification_status: source_verified
+rules_complete: false
+last_verified: 2026-11-01
+next_review_due: 2027-02-01
+tags: [pension, unorganised-sector, central]
+
+translations:
+  en:
+    official_name: Atal Pension Yojana (APY)
+    short_description: >-
+      Pension scheme open to Indian citizens aged 18 to 40 who are not, and have never been, income-tax payers.
+      Enrolment is through a bank branch or post office savings account.
+    benefits: null
+    target_beneficiaries: >-
+      Citizens of India aged between 18 and 40 years. Government and public-sector employees and existing NPS
+      subscribers may also join. NRIs who meet the conditions may open an account.
+    origin: curated
+
+sources:
+  - key: faq
+    url: https://pfrda.org.in/web/pfrda/w/faqs/atal-pension-yojana
+    title: PFRDA FAQs - Atal Pension Yojana
+    doc_type: html
+    retrieved_at: 2026-11-01
+    retrieval_method: manual_curation
+    language: en
+
+links:
+  - url: https://pfrda.org.in/web/pfrda/w/faqs/atal-pension-yojana
+    link_type: information
+    notes: PFRDA's FAQ page for the scheme. PFRDA is the statutory pension regulator; its domain is .org.in.
+
+eligibility:
+  logic: AND
+  items:
+    - rule: {field: age_years, op: between, value: [18, 40], source: faq, locator: "FAQ 'Who can subscribe to APY?', point (i)"}
+
+exclusions:
+  - {field: is_or_was_income_tax_payer, op: is_true, source: faq,
+     locator: "FAQ 'Who can subscribe to APY?', point (iii); FAQ 'Can an Income-tax payer open new APY account?'"}
+
+documents:
+  - code: aadhaar
+    requirement_type: optional
+    names: {en: Aadhaar number}
+    purpose_note: May be provided at enrolment because APY is notified for Aadhaar. The FAQ says "may", not "must".
+    source: faq
+    locator: "FAQ 'Who can subscribe to APY?', closing paragraph"
+
+steps:
+  en:
+    - instruction: Go to the bank branch or post office where you hold your savings account. If you do not have one, open a savings account at a bank or post office.
+      source: faq
+      locator: "FAQ 'What is the procedure for opening APY Account?'"
+    - instruction: You may give the bank your mobile number to receive updates on your APY account and the scheme, and you may also give your Aadhaar number.
+      source: faq
+      locator: "FAQ 'Who can subscribe to APY?', closing paragraph"
