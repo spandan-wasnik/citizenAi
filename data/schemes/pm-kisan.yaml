@@ -1,0 +1,93 @@
+# PM-KISAN. Built ONLY from the Ministry's Operational Guidelines (revised as on 29.03.2020), pasted by the project
+# owner from the official PDF on 2026-11-01. Anything not in that document is deliberately left out or UNKNOWN.
+# Known limits: (1) the guidelines are dated 2020 and the scheme has been revised since, e.g. e-KYC, so
+# status stays 'unknown' and rules_complete stays false until a current official source is read;
+# (2) most exclusion categories (office-holders, government employees, pensioners, income-tax payers, professionals,
+# institutional holders, NRIs) cannot be checked from a citizen's profile fields, so they are NOT modelled as rules.
+scheme_id: pm-kisan
+level: central
+state_code: null
+ministry: Ministry of Agriculture & Farmers' Welfare
+department: Department of Agriculture, Cooperation & Farmers' Welfare (DAC&FW)
+status: unknown
+volatility: volatile
+verification_status: source_verified
+rules_complete: false
+last_verified: 2026-11-01
+next_review_due: 2027-02-01
+tags: [farmers, income-support, central-sector]
+
+translations:
+  en:
+    official_name: Pradhan Mantri Kisan Samman Nidhi (PM-KISAN)
+    short_description: >-
+      Income support for landholding farmer families with cultivable land. Families in the excluded categories
+      listed in section 4 of the guidelines (for example institutional landholders, certain current or former office
+      holders, government employees and higher pensioners, income-tax payers, registered professionals, and, for new
+      beneficiaries, non-resident Indians) are not eligible. This record does not model those exclusions.
+    benefits: >-
+      Rs. 6,000 per year, paid directly into the beneficiary's bank account (Direct Benefit Transfer) in three
+      instalments of Rs. 2,000 every four months.
+    target_beneficiaries: >-
+      A landholder farmer's family: husband, wife and minor children, who own cultivable land according to the
+      State or UT land records.
+    origin: curated
+
+sources:
+  - key: guidelines
+    url: https://pmkisan.gov.in/Documents/RevisedPM-KISANOperationalGuidelines(English).pdf
+    title: PM-KISAN Operational Guidelines (revised as on 29.03.2020)
+    doc_type: pdf
+    retrieved_at: 2026-11-01
+    retrieval_method: manual_curation
+    language: en
+
+links:
+  - url: https://pmkisan.gov.in/
+    link_type: information
+    notes: Portal named in paragraph 9.1 of the guidelines.
+  - url: https://pmkisan.gov.in/Documents/RevisedPM-KISANOperationalGuidelines(English).pdf
+    link_type: guidelines
+
+eligibility:
+  logic: AND
+  items:
+    - rule: {field: owns_agricultural_land, op: is_true, source: guidelines, locator: "paras 1 and 3"}
+
+documents:
+  - code: land_records
+    requirement_type: mandatory
+    names: {en: Land records showing your family's cultivable land}
+    purpose_note: Beneficiaries are identified from the State or UT land-ownership records; only families whose names are entered in them are paid.
+    source: guidelines
+    locator: "paras 3 and 5.1"
+  - code: aadhaar
+    requirement_type: mandatory
+    names: {en: Aadhaar number}
+    purpose_note: Payments are made on an Aadhaar-seeded database. The guidelines name exemptions only for Assam, Meghalaya and Jammu & Kashmir until 31.03.2021, which have expired.
+    source: guidelines
+    locator: "paras 6.1 and 10.2"
+  - code: bank_account_details
+    requirement_type: mandatory
+    names: {en: Bank account number and IFSC code}
+    purpose_note: Benefit is transferred into the beneficiary's bank account.
+    source: guidelines
+    locator: "paras 9.3 and 10.4(a)"
+  - code: self_declaration_exclusions
+    requirement_type: mandatory
+    names: {en: Self-declaration that none of the exclusion categories applies}
+    purpose_note: Includes consent to use your Aadhaar number to verify eligibility. A wrong declaration can lead to recovery of the money and other action as per law.
+    source: guidelines
+    locator: "paras 4.2 and 6.2"
+
+steps:
+  en:
+    - instruction: Your State or UT government identifies eligible landholding families from its land records. You are asked for a self-declaration that none of the exclusion categories applies to your family.
+      source: guidelines
+      locator: "paras 4.2, 6.1 and 6.3"
+    - instruction: Lists of eligible families are published at village level. If your family is eligible but left out, you can put your case to the authorities.
+      source: guidelines
+      locator: "para 6.4"
+    - instruction: Payment is made as three instalments of Rs. 2,000 (April-July, August-November, December-March) into your bank account by Direct Benefit Transfer.
+      source: guidelines
+      locator: "para 10.1"
