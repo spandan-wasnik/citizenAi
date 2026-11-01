@@ -27,7 +27,23 @@ MAX_PROFILE_KEYS, MAX_TEXT = 30, 100
 STATUS_ORDER = {Status.LIKELY_ELIGIBLE: 0, Status.INSUFFICIENT_INFORMATION: 1,
                 Status.REQUIRES_OFFICIAL_VERIFICATION: 2, Status.LIKELY_INELIGIBLE: 3}
 
-router = APIRouter()
+class ErrorDetail(BaseModel):
+    code: str
+    message: str
+    details: list | dict | None = None
+
+
+class ErrorEnvelope(BaseModel):
+    error: ErrorDetail
+
+
+# so the interactive docs show the error format the API really returns
+_ERRORS = {code: {"model": ErrorEnvelope, "description": desc} for code, desc in
+           {400: "Unsupported language or unavailable explanation language", 404: "Unknown scheme or route",
+            422: "Request could not be used (values are never echoed back)", 500: "Unexpected error (generic message)",
+            503: "Scheme database not ready"}.items()}
+
+router = APIRouter(responses=_ERRORS)
 
 
 # ----------------------------------------------------------------------------- dependencies

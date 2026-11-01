@@ -213,3 +213,16 @@ def test_unexpected_failure_becomes_a_safe_500(db_url, monkeypatch):
         r = c.post("/api/v1/schemes/pm-kisan/evaluate", json={"profile": {}})
     e = err(r, 500, "internal_error")
     assert "secret detail" not in r.text and "Traceback" not in r.text and e["details"] is None
+
+
+def test_exclusion_lines_in_api_output_read_correctly(client):
+    r = client.post("/api/v1/schemes/atal-pension-yojana/evaluate", json={"profile": {"age_years": 30}}).json()
+    line = next(x["explanation"] for x in r["rules"] if x["purpose"] == "exclusion")
+    assert "excludes people whose answer is yes" in line and "must be yes" not in line
+
+
+def test_docs_describe_the_real_error_shape(client):
+    spec = client.get("/openapi.json").json()
+    resp = spec["paths"]["/api/v1/schemes/{scheme_id}"]["get"]["responses"]
+    assert resp["404"]["content"]["application/json"]["schema"]["$ref"].endswith("ErrorEnvelope")
+    assert "422" in resp and resp["422"]["description"].startswith("Request could not be used")

@@ -77,3 +77,21 @@ def test_confirm_list_is_in_the_explanation_in_the_requested_language_only():
     out = explain_assessment(evaluate_scheme(s, {"age_years": 20}, today=TODAY))
     assert out["confirm"] == ["No family member is an income-tax payer."]
     assert any("other official conditions" in w for w in out["warnings"])
+
+
+def test_unanswered_exclusion_is_not_described_as_a_requirement():
+    ex = Group("NOT_ANY", (rule("receives_other_scholarship", "is_true"),))
+    a = run(Group("AND", (rule("age_years", "gte", 18),)), {"age_years": 20}, ex)
+    line = next(explain_result(x) for x in a.results if x.purpose == "exclusion")
+    assert "excludes people whose answer is yes" in line
+    assert "have not assumed the exclusion does not apply" in line
+    assert "requirement" not in line and "must be yes" not in line
+
+
+@pytest.mark.parametrize("op,value,expected", [
+    ("is_false", None, "is no"), ("eq", "farmer", "is farmer"), ("lte", 5, "is at most 5"), ("neq", "farmer", "is not farmer"),
+])
+def test_exclusion_phrases(op, value, expected):
+    from app.domain.explain import describe_exclusion
+    field = "occupation" if isinstance(value, str) else ("receives_other_scholarship" if value is None else "age_years")
+    assert describe_exclusion(rule(field, op, value)) == expected

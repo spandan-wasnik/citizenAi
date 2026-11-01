@@ -92,6 +92,22 @@ def describe_requirement(rule: Rule, lang: str = "en") -> str:
     }[rule.op]()
 
 
+def describe_exclusion(rule: Rule, lang: str = "en") -> str:
+    """The excluding condition, phrased so it reads correctly after 'excludes people whose answer ...'."""
+    _check(lang)
+    f, v = rule.field, rule.value
+    s = lambda x: _show(f, x)  # noqa: E731
+    return {
+        "eq": lambda: f"is {s(v)}", "neq": lambda: f"is not {s(v)}",
+        "in": lambda: "is one of: " + ", ".join(s(x) for x in v),
+        "not_in": lambda: "is none of: " + ", ".join(s(x) for x in v),
+        "gte": lambda: f"is at least {s(v)}", "lte": lambda: f"is at most {s(v)}",
+        "gt": lambda: f"is more than {s(v)}", "lt": lambda: f"is less than {s(v)}",
+        "between": lambda: f"is between {s(v[0])} and {s(v[1])} (both included)",
+        "is_true": lambda: "is yes", "is_false": lambda: "is no",
+    }[rule.op]()
+
+
 def _check(lang: str) -> None:
     if lang not in LABELS:
         raise ValueError(f"explanations are not available in '{lang}' yet; refusing to fall back to English silently")
@@ -100,21 +116,33 @@ def _check(lang: str) -> None:
 def explain_result(r: RuleResult, lang: str = "en") -> str:
     _check(lang)
     label = LABELS[lang].get(r.rule.field, r.rule.field)
-    req = describe_requirement(r.rule, lang)
     given = _show(r.rule.field, r.user_value)
     code = r.reason_code
     as_of = f" on {r.params['as_of']}" if r.params.get("as_of") else ""
 
     if r.purpose == "exclusion":
+        cond = describe_exclusion(r.rule, lang)
+        rule_text = f"The scheme excludes people whose answer {cond}."
         if r.result is Tri.PASS:
-            return f"{label}{as_of}: {given}. This scheme excludes people where this {req}; the exclusion applies to you."
+            return f"{label}{as_of}: {given}. {rule_text} The exclusion applies to you."
         if r.result is Tri.FAIL:
-            return f"{label}{as_of}: {given}. The exclusion ({req}) does not apply to you."
-    elif code == "meets_requirement":
-        return f"{label}{as_of}: you said {given}; requirement: {req}. This is met."
-    elif code == "fails_requirement":
-        return f"{label}{as_of}: you said {given}; requirement: {req}. This is not met."
+            return f"{label}{as_of}: {given}. {rule_text} The exclusion does not apply to you."
+        if code == "missing_value":
+            return (f"{label}: not provided. {rule_text} We need this to decide; "
+                    "we have not assumed the exclusion does not apply.")
+        if code == "invalid_value":
+            return f"{label}: the answer given ({given}) could not be used. {rule_text}"
+        if code == "official_only":
+            return f"{label}: {rule_text} This cannot be checked from your answers; confirm it with the official authority."
+        if code == "rule_not_verified":
+            return f"{label}: {rule_text} This rule has not been verified against an official source yet."
+        return f"{label}: {code}"
 
+    req = describe_requirement(r.rule, lang)
+    if code == "meets_requirement":
+        return f"{label}{as_of}: you said {given}; requirement: {req}. This is met."
+    if code == "fails_requirement":
+        return f"{label}{as_of}: you said {given}; requirement: {req}. This is not met."
     if code == "missing_value":
         return f"{label}: not provided; requirement: {req}. We need this to decide; we have not assumed it is met."
     if code == "invalid_value":
