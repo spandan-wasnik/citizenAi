@@ -46,6 +46,7 @@ REASON_TEXT = {"en": {
     "scheme_status_suspended": "This scheme is recorded as suspended.",
     "scheme_status_unknown": "We could not confirm that this scheme is currently active.",
     "deadline_passed": "The recorded application deadline has passed.",
+    "confirm_other_conditions": "This scheme has other official conditions that we cannot check from your answers; see the list below.",
 }}
 
 
@@ -138,5 +139,6 @@ def explain_assessment(a: Assessment, lang: str = "en") -> dict:
         "warnings": [REASON_TEXT[lang].get(c, c) for c in a.warnings],
         "rules": [explain_result(r, lang) for r in a.results],
         "missing": [LABELS[lang].get(m.field, m.field) for m in a.missing_fields],
+        "confirm": [c.texts[lang] for c in a.other_conditions if lang in c.texts],
         "notice": PRELIMINARY_NOTICE[lang],
     }

@@ -91,3 +91,37 @@ steps:
     - instruction: Payment is made as three instalments of Rs. 2,000 (April-July, August-November, December-March) into your bank account by Direct Benefit Transfer.
       source: guidelines
       locator: "para 10.1"
+
+other_conditions:
+  - kind: requirement
+    text: {en: "Your family (husband, wife and minor children) must own cultivable land as shown in your State or UT land records. The guidelines treat 1 February 2019 as the cut-off date for deciding eligibility, with exceptions such as inheritance after a death."}
+    source: guidelines
+    locator: "paras 3, 5.1, 5.2 and 5.3"
+  - kind: exclusion
+    text: {en: "Institutional landholders are not eligible."}
+    source: guidelines
+    locator: "para 4.1(a)"
+  - kind: exclusion
+    text: {en: "Not eligible if any family member is a former or present holder of a constitutional post, or a former or present Minister, Member of Parliament, State legislature member, Mayor of a Municipal Corporation, or Chairperson of a District Panchayat."}
+    source: guidelines
+    locator: "para 4.1(b)(i)-(ii)"
+  - kind: exclusion
+    text: {en: "Not eligible if any family member is a serving or retired officer or employee of the Central or State Government, its offices, public sector enterprises or autonomous bodies, or a regular employee of a local body (Multi Tasking Staff, Class IV and Group D employees are excepted)."}
+    source: guidelines
+    locator: "para 4.1(b)(iii)"
+  - kind: exclusion
+    text: {en: "Not eligible if any family member is a retired pensioner whose monthly pension is Rs. 10,000 or more (Multi Tasking Staff, Class IV and Group D employees are excepted)."}
+    source: guidelines
+    locator: "para 4.1(b)(iv)"
+  - kind: exclusion
+    text: {en: "Not eligible if any family member paid income tax in the last assessment year."}
+    source: guidelines
+    locator: "para 4.1(b)(v)"
+  - kind: exclusion
+    text: {en: "Not eligible if any family member is a registered, practising professional such as a doctor, engineer, lawyer, chartered accountant or architect."}
+    source: guidelines
+    locator: "para 4.1(b)(vi)"
+  - kind: exclusion
+    text: {en: "For new beneficiaries uploaded on the portal, landholding families who are Non-Resident Indians under the Income Tax Act, 1961 are excluded."}
+    source: guidelines
+    locator: "para 4.1(c)"

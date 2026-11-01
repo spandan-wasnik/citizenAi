@@ -268,3 +268,27 @@ def test_field_registry_is_consistent():
     assert allowed_values("age_years") is None
     assert allowed_values("state_code") == STATE_CODES
     assert "student" in allowed_values("occupation")
+
+
+# ------------------------------------------------------------------ other_conditions
+def _cond(**kw):
+    c = {"kind": "exclusion", "text": {"en": "No family member is a government employee."}, "source": "s1",
+         "locator": "para 5"}
+    c.update(kw)
+    return c
+
+
+def test_other_conditions_accepted():
+    scheme = SchemeFile.model_validate(mutate(other_conditions=[_cond(), _cond(kind="requirement")]))
+    assert [c.kind for c in scheme.other_conditions] == ["exclusion", "requirement"]
+
+
+@pytest.mark.parametrize("bad,needle", [
+    ({"source": "nope"}, "unknown source"),
+    ({"locator": ""}, "locator"),
+    ({"kind": "maybe"}, "kind"),
+    ({"text": {"hi": "x"}}, "English"),
+    ({"text": {"en": "  "}}, "English"),
+])
+def test_bad_other_conditions_are_rejected(bad, needle):
+    assert needle in error_text(mutate(other_conditions=[_cond(**bad)]))

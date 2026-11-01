@@ -269,6 +269,24 @@ class SchemeDocument(Base):
     source_locator: Mapped[str] = mapped_column(Text)
 
 
+class SchemeCondition(Base):
+    """An official condition that a citizen's profile cannot settle (e.g. 'no family member is a government employee').
+    Shown to the user as 'confirm this officially'; never evaluated by the engine."""
+    __tablename__ = "scheme_conditions"
+    __table_args__ = (
+        CheckConstraint(_in("kind", ("exclusion", "requirement")), name="ck_scheme_conditions_kind"),
+        CheckConstraint("json_valid(texts)", name="ck_scheme_conditions_texts"),
+        Index("ix_scheme_conditions_scheme", "scheme_id"),
+    )
+    condition_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    scheme_id: Mapped[str] = mapped_column(ForeignKey("schemes.scheme_id", ondelete="CASCADE"))
+    position: Mapped[int] = mapped_column(Integer)
+    kind: Mapped[str] = mapped_column(Text)
+    texts: Mapped[str] = mapped_column(Text)  # JSON object: language code -> text
+    source_doc_id: Mapped[int] = mapped_column(ForeignKey("source_documents.doc_id"))
+    source_locator: Mapped[str] = mapped_column(Text)
+
+
 class Link(Base):
     __tablename__ = "links"
     __table_args__ = (

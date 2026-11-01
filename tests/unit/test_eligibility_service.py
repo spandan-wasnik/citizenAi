@@ -98,3 +98,55 @@ def test_unknown_scheme_raises(engine):
     with session_scope(engine) as s:
         with pytest.raises(SchemeNotFound):
             load_scheme_rules(s, "nope")
+
+
+def _with_conditions():
+    data = base()
+    data["other_conditions"] = [
+        {"kind": "exclusion", "text": {"en": "No family member is a government employee."}, "source": "s1", "locator": "para 5"},
+        {"kind": "requirement", "text": {"en": "Admitted through CAP."}, "source": "s1", "locator": "para 6"},
+    ]
+    return data
+
+
+def test_other_conditions_flow_from_file_and_database_identically(engine):
+    data = _with_conditions()
+    seed(engine, [data])
+    file_rules = from_scheme_file(SchemeFile.model_validate(data))
+    with session_scope(engine) as s:
+        db_rules = load_scheme_rules(s, "test-scholarship")
+    from app.domain.eligibility import rules_hash
+    assert [(c.kind, c.texts["en"], c.source_url, c.locator) for c in db_rules.other_conditions] == \
+           [(c.kind, c.texts["en"], c.source_url, c.locator) for c in file_rules.other_conditions]
+    assert db_rules.other_conditions[0].source_url == "https://pib.gov.in/fixture"
+    assert rules_hash(db_rules) == rules_hash(file_rules)
+    assert rules_hash(file_rules) != rules_hash(from_scheme_file(SchemeFile.model_validate(base())))
+
+
+def test_other_conditions_are_listed_whatever_the_status_and_never_change_it(engine):
+    seed(engine, [_with_conditions()])
+    profile = {"age_years": 21, "annual_family_income": 150000, "occupation": "student",
+               "receives_other_scholarship": False}
+    with session_scope(engine) as s:
+        a = evaluate_from_db(s, "test-scholarship", profile, today=TODAY)
+        bad = evaluate_from_db(s, "test-scholarship", {"age_years": 40}, today=TODAY)
+    assert a.status is Status.LIKELY_ELIGIBLE and "confirm_other_conditions" in a.warnings
+    assert len(a.other_conditions) == 2
+    assert bad.status is Status.LIKELY_INELIGIBLE and len(bad.other_conditions) == 2
+
+
+def test_reseeding_replaces_conditions_without_duplicates(engine):
+    from sqlalchemy import text
+    seed(engine, [_with_conditions()])
+    changed = _with_conditions()
+    changed["other_conditions"] = changed["other_conditions"][:1]
+    seed(engine, [changed])
+    with session_scope(engine) as s:
+        assert s.execute(text("SELECT COUNT(*) FROM scheme_conditions")).scalar() == 1
+
+
+def test_scheme_without_conditions_has_no_warning(engine):
+    seed(engine, [base()])
+    with session_scope(engine) as s:
+        a = evaluate_from_db(s, "test-scholarship", {"age_years": 21}, today=TODAY)
+    assert a.other_conditions == () and "confirm_other_conditions" not in a.warnings

@@ -15,7 +15,7 @@
 #      changes no eligibility rule and is not cited here;
 #  (5) NOT modelled as rules (para 5 and 4): family member who is a government employee or pensioner, income-tax payer,
 #      current or former MP/MLA, or chair/director/member of a government board; family land of more than five acres;
-#      a family four-wheeler (tractors excepted); getting Rs. 1,500 or more from another scheme; and marital status
+#      a family four-wheeler (tractors excepted); getting more than Rs. 1,500 from another scheme (para 5(4)); and marital status
 #      ("married, widowed, divorced, abandoned, destitute" does not map onto the marital-status values).
 scheme_id: mukhyamantri-majhi-ladki-bahin
 level: state
@@ -80,7 +80,8 @@ documents:
     locator: "paras 6(2), 9(अ)(5) and 9(ई)"
   - code: domicile_certificate
     requirement_type: mandatory
-    names: {en: Maharashtra domicile certificate or birth certificate issued in Maharashtra}
+    names: {en: Maharashtra domicile certificate}
+    purpose_note: The GR also accepts a birth certificate issued in Maharashtra.
     source: gr_2024
     locator: "para 6(3)"
   - code: income_certificate
@@ -126,3 +127,37 @@ steps:
     - instruction: A final list of eligible and ineligible applicants is published. The money is paid into your own Aadhaar-linked, Direct Benefit Transfer enabled bank account through the District Women and Child Development Officer's office.
       source: gr_2024
       locator: "paras 9(ड) and 9(ई)"
+
+other_conditions:
+  - kind: requirement
+    text: {en: "The scheme is for married, widowed, divorced, abandoned and destitute women of Maharashtra."}
+    source: gr_2024
+    locator: "paras 3 and 4(2)"
+  - kind: exclusion
+    text: {en: "Not eligible if any family member is a regular, permanent or contract employee of a government department, undertaking, board or local body of the Central or State Government, or a retired pensioner. Workers engaged through an outside agency and voluntary workers are not excluded."}
+    source: gr_2024
+    locator: "para 5(3)"
+  - kind: exclusion
+    text: {en: "Not eligible if any family member is an income-tax payer."}
+    source: gr_2024
+    locator: "para 5(2)"
+  - kind: exclusion
+    text: {en: "Not eligible if any family member is a present or former Member of Parliament or of the Legislative Assembly."}
+    source: gr_2024
+    locator: "para 5(5)"
+  - kind: exclusion
+    text: {en: "Not eligible if any family member is a chairperson, vice-chairperson, director or member of a board, corporation or undertaking of the Central or State Government."}
+    source: gr_2024
+    locator: "para 5(6)"
+  - kind: exclusion
+    text: {en: "Not eligible if family members jointly own more than five acres of agricultural land."}
+    source: gr_2024
+    locator: "para 5(7)"
+  - kind: exclusion
+    text: {en: "Not eligible if a four-wheeler (tractors excepted) is registered in the name of a family member."}
+    source: gr_2024
+    locator: "para 5(8)"
+  - kind: exclusion
+    text: {en: "Not eligible if you already get more than Rs. 1,500 a month from financial schemes of other government departments. If you get less than Rs. 1,500, the difference is paid."}
+    source: gr_2024
+    locator: "paras 2 and 5(4)"

@@ -114,3 +114,29 @@ steps:
     - instruction: The scholarship is paid directly into your bank account. Students already receiving it are renewed automatically each year, subject to promotion and at least 75% attendance.
       source: guidelines
       locator: "paras 11.1, 12.1 and 17.3"
+
+other_conditions:
+  - kind: requirement
+    text: {en: "The scholarships are open to nationals of India only."}
+    source: guidelines
+    locator: "para 5.1"
+  - kind: requirement
+    text: {en: "You must have passed the Matriculation or Higher Secondary or any higher examination of a recognized University or Board of Secondary Education."}
+    source: guidelines
+    locator: "para 5.2"
+  - kind: requirement
+    text: {en: "The course must be a recognized post-matriculation or post-secondary course at a recognized institution in India, in one of the nine institution categories listed in the guidelines."}
+    source: guidelines
+    locator: "paras 2.1 and 4.2"
+  - kind: exclusion
+    text: {en: "Not eligible if, after passing one stage of education, you study the same stage in a different subject (for example Intermediate Science after Intermediate Arts, or B.Com after B.A.)."}
+    source: guidelines
+    locator: "para 5.5"
+  - kind: exclusion
+    text: {en: "Seats filled through arbitrary or non-transparent processes (including management quota, NRI quota and spot admissions) are not eligible."}
+    source: guidelines
+    locator: "para 5.9"
+  - kind: requirement
+    text: {en: "A scholarship holder cannot hold another scholarship or stipend at the same time. If you are awarded another, you choose whichever is more beneficial and tell the awarding authority."}
+    source: guidelines
+    locator: "para 5.8"

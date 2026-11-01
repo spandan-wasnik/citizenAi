@@ -65,6 +65,15 @@ class Group:
 
 
 @dataclass(frozen=True)
+class OtherCondition:
+    """An official condition no profile answer can settle. Never evaluated; shown as 'confirm this officially'."""
+    kind: str  # exclusion | requirement
+    texts: Mapping[str, str]
+    source_url: str | None = None
+    locator: str = ""
+
+
+@dataclass(frozen=True)
 class SchemeRules:
     scheme_id: str
     eligibility: Group | None = None
@@ -76,6 +85,7 @@ class SchemeRules:
     last_verified: date | None = None
     next_review_due: date | None = None
     application_deadline: date | None = None
+    other_conditions: tuple[OtherCondition, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -107,6 +117,7 @@ class Assessment:
     engine_version: str
     rules_hash: str
     evaluated_on: date
+    other_conditions: tuple[OtherCondition, ...] = ()
 
 
 # ----------------------------------------------------------------------------- hashing
@@ -124,7 +135,9 @@ def _canon_group(g: Group) -> dict:
 def rules_hash(scheme: SchemeRules) -> str:
     """Stable fingerprint of the rules (independent of item order and of where they were loaded from)."""
     blob = {"e": _canon_group(scheme.eligibility) if scheme.eligibility else None,
-            "x": _canon_group(scheme.exclusions) if scheme.exclusions else None}
+            "x": _canon_group(scheme.exclusions) if scheme.exclusions else None,
+            "o": sorted(([c.kind, dict(c.texts), c.source_url, c.locator] for c in scheme.other_conditions),
+                        key=lambda x: json.dumps(x, sort_keys=True, default=str))}
     return hashlib.sha256(json.dumps(blob, sort_keys=True, default=str).encode()).hexdigest()
 
 
@@ -341,8 +354,10 @@ def evaluate_scheme(scheme: SchemeRules, profile: Mapping[str, Any], *, today: d
             reasons.append(f"scheme_status_{scheme.status}")
         status = Status.REQUIRES_OFFICIAL_VERIFICATION if reasons else Status.LIKELY_ELIGIBLE
 
+    if scheme.other_conditions:
+        warnings.append("confirm_other_conditions")  # shown whatever the status: these are never checked by the engine
     return Assessment(scheme.scheme_id, status, top, tuple(reasons), tuple(warnings), tuple(results),
-                      tuple(missing), ENGINE_VERSION, rules_hash(scheme), today)
+                      tuple(missing), ENGINE_VERSION, rules_hash(scheme), today, scheme.other_conditions)
 
 
 def _decisive_missing(results: list[RuleResult], top_with) -> list[MissingField]:

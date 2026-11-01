@@ -196,6 +196,20 @@ class StepSpec(Strict):
     locator: str = Field(min_length=1)
 
 
+class OtherConditionSpec(Strict):
+    """An official condition that cannot be settled from profile answers. Shown as 'confirm this officially'."""
+    kind: Literal["exclusion", "requirement"]
+    text: dict[Lang, str]
+    source: str
+    locator: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _english_required(self) -> "OtherConditionSpec":
+        if not self.text.get("en", "").strip():
+            raise ValueError("an other-condition needs English text")
+        return self
+
+
 class SchemeFile(Strict):
     scheme_id: str
     level: Literal["central", "state", "ut", "local"]
@@ -216,6 +230,7 @@ class SchemeFile(Strict):
     links: list[LinkSpec] = Field(default_factory=list)
     eligibility: GroupSpec | None = None
     exclusions: list[RuleSpec] = Field(default_factory=list)
+    other_conditions: list[OtherConditionSpec] = Field(default_factory=list)
     condition_groups: dict[str, GroupSpec] = Field(default_factory=dict)
     documents: list[DocumentSpec] = Field(default_factory=list)
     steps: dict[Lang, list[StepSpec]] = Field(default_factory=dict)
@@ -267,6 +282,9 @@ class SchemeFile(Strict):
         for rule in self.all_rules():
             if rule.source not in known:
                 problems.append(f"rule on '{rule.field}' cites unknown source '{rule.source}'")
+        for cond in self.other_conditions:
+            if cond.source not in known:
+                problems.append(f"other condition '{cond.text.get('en', '')[:30]}' cites unknown source '{cond.source}'")
         for doc in self.documents:
             if doc.source not in known:
                 problems.append(f"document '{doc.code}' cites unknown source '{doc.source}'")

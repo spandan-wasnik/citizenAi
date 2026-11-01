@@ -1,0 +1,126 @@
+# Rajarshi Chhatrapati Shahu Maharaj Shikshan Shulkh Shishyavrutti Yojana (EBC/EWS fee concession), Maharashtra.
+# Built ONLY from the "About Scheme", "Benefits", "Eligibility" and "Documents Required" sections of the MahaDBT scheme page
+# for the Directorate of Technical Education (text pasted by the project owner from the site on 2026-11-01). An
+# introductory summary that came with that paste (extra income-certificate issuer, "CAP seat allotment letter" wording,
+# GR content notes, document-repository steps) was NOT used: it is not on the page. The scheme NAME is the one the owner
+# chose; the pasted page text does not print it, so the name is unconfirmed by this source.
+# Known limits:
+#  (1) the page does not say whether applications are open this year, so status is 'unknown' and no deadline is set;
+#  (2) the page cites GRs of 07 Oct 2017, 01 Mar 2018, 31 Mar 2018, 11 Jul 2019 and 08 Jul 2024; none of these GRs has
+#      been read, so details like which courses count as "professional and technical" are not modelled;
+#  (3) NOT modelled as rules: Indian nationality (a), course type (c), no deemed or private university (d), admission
+#      through CAP (e), at most 2 children from the family (g), 50% attendance (i), no education gap of 2+ years (j);
+#  (4) "Total Annual Income of Family / Guardian" is read as the family income field.
+#  (5) renewal applications (previous-year income certificate and marksheet) are a different process and not modelled.
+scheme_id: rajarshi-shahu-maharaj-ebc-fee-concession
+level: state
+state_code: MH
+ministry: null
+department: Higher and Technical Education Department, Maharashtra (implemented by the Directorate of Technical Education)
+status: unknown
+volatility: volatile
+verification_status: source_verified
+rules_complete: false
+last_verified: 2026-11-01
+next_review_due: 2026-12-01
+tags: [scholarship, education, maharashtra, ebc, ews]
+
+translations:
+  en:
+    official_name: Rajarshi Chhatrapati Shahu Maharaj Shikshan Shulkh Shishyavrutti Yojana (EBC/EWS fee concession)
+    short_description: >-
+      Financial assistance for Economically Backward Class (EBC) and Economically Weaker Section (EWS) students with
+      family income up to Rs. 8 lakh, admitted through the Centralized Admission Process (CAP) to diploma, degree or
+      postgraduate technical and professional courses in Maharashtra.
+    benefits: >-
+      Tuition fee and examination fee concession for courses of the professional type: 50% of each for male students
+      and 100% of each for female students. Paid through the MahaDBT portal in two instalments into an Aadhaar-seeded
+      bank account.
+    target_beneficiaries: >-
+      EBC and EWS students who are domiciled in Maharashtra and are bonafide students admitted through CAP to
+      technical and professional courses.
+    origin: curated
+
+sources:
+  - key: mahadbt_page
+    url: https://mahadbt.maharashtra.gov.in/SchemeData/SchemeData?str=E9DDFA703C38E51A7F4D327BDEB7125DE0BA4AE1C51180C272281017EBEF6F7C
+    title: MahaDBT scheme page, Directorate of Technical Education, with eligibility as per GRs of 07 Oct 2017, 01 Mar 2018, 31 Mar 2018, 11 Jul 2019 and 08 Jul 2024
+    doc_type: html
+    retrieved_at: 2026-11-01
+    retrieval_method: manual_curation
+    language: en
+
+links:
+  - url: https://mahadbt.maharashtra.gov.in/SchemeData/SchemeData?str=E9DDFA703C38E51A7F4D327BDEB7125DE0BA4AE1C51180C272281017EBEF6F7C
+    link_type: information
+    notes: The scheme page the facts were taken from.
+
+eligibility:
+  logic: AND
+  items:
+    - rule: {field: domicile_state_code, op: eq, value: MH, source: mahadbt_page, locator: "Eligibility (b)"}
+    - rule: {field: is_enrolled_in_education, op: is_true, source: mahadbt_page, locator: "Eligibility (c): bonafide student of the institute"}
+    - rule: {field: annual_family_income, op: lte, value: 800000, source: mahadbt_page, locator: "Eligibility (h); Benefits table"}
+
+exclusions:
+  - {field: receives_other_scholarship, op: is_true, source: mahadbt_page, locator: "Eligibility (f)"}
+
+documents:
+  - code: previous_exam_certificates
+    requirement_type: mandatory
+    names: {en: Certificates and marksheets of the examinations you have passed}
+    purpose_note: The page asks for the 10th (S.S.C.) marksheet and onwards.
+    source: mahadbt_page
+    locator: "Documents Required, fresh application (a)"
+  - code: domicile_certificate
+    requirement_type: mandatory
+    names: {en: Maharashtra domicile certificate}
+    source: mahadbt_page
+    locator: "Documents Required, fresh application (b)"
+  - code: income_certificate
+    requirement_type: mandatory
+    names: {en: Income certificate}
+    purpose_note: The previous year's family annual income certificate.
+    source: mahadbt_page
+    locator: "Documents Required, fresh application (c)"
+  - code: undertaking_two_beneficiaries
+    requirement_type: mandatory
+    names: {en: Undertaking that not more than 2 beneficiaries from your family are in the scheme this year}
+    source: mahadbt_page
+    locator: "Documents Required, fresh application (d)"
+  - code: cap_related_document
+    requirement_type: mandatory
+    names: {en: CAP admission document}
+    purpose_note: The page says only "CAP related document"; which paper this is has not been confirmed.
+    source: mahadbt_page
+    locator: "Documents Required, fresh application (e)"
+
+other_conditions:
+  - kind: requirement
+    text: {en: "The applicant must have Indian nationality."}
+    source: mahadbt_page
+    locator: "Eligibility (a)"
+  - kind: requirement
+    text: {en: "You must be a bonafide student admitted to a professional or technical course (diploma, graduation or post-graduation) as mentioned in the Government Resolutions."}
+    source: mahadbt_page
+    locator: "Eligibility (c)"
+  - kind: requirement
+    text: {en: "You must be admitted through the Centralized Admission Process (CAP)."}
+    source: mahadbt_page
+    locator: "Eligibility (e)"
+  - kind: exclusion
+    text: {en: "Deemed universities and private universities are not applicable."}
+    source: mahadbt_page
+    locator: "Eligibility (d)"
+  - kind: requirement
+    text: {en: "For the current academic year only 2 children from a family can benefit from the scheme."}
+    source: mahadbt_page
+    locator: "Eligibility (g)"
+  - kind: requirement
+    text: {en: "Minimum 50% attendance in the previous semester is needed (first-semester freshly admitted students are excepted)."}
+    source: mahadbt_page
+    locator: "Eligibility (i)"
+  - kind: requirement
+    text: {en: "During the course you must not have a gap of 2 years or more."}
+    source: mahadbt_page
+    locator: "Eligibility (j)"

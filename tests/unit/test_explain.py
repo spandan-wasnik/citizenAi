@@ -66,3 +66,14 @@ def test_unsupported_language_raises_instead_of_falling_back():
         explain_assessment(a, "hi")
     with pytest.raises(ValueError):
         explain_result(a.results[0], "mr")
+
+
+def test_confirm_list_is_in_the_explanation_in_the_requested_language_only():
+    from app.domain.eligibility import OtherCondition
+    s = SchemeRules("s", Group("AND", (rule("age_years", "gte", 18),)), None, True, "active", "source_verified",
+                    next_review_due=date(2027, 4, 1),
+                    other_conditions=(OtherCondition("exclusion", {"en": "No family member is an income-tax payer."}),
+                                      OtherCondition("requirement", {"mr": "x"})))
+    out = explain_assessment(evaluate_scheme(s, {"age_years": 20}, today=TODAY))
+    assert out["confirm"] == ["No family member is an income-tax payer."]
+    assert any("other official conditions" in w for w in out["warnings"])

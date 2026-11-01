@@ -48,7 +48,7 @@ def base_rows(engine):
 # ---------------------------------------------------------------- migrations
 def test_migrates_to_head_with_all_tables(engine):
     names = set(inspect(engine).get_table_names())
-    assert len(set(Base.metadata.tables) & names) == 28
+    assert len(set(Base.metadata.tables) & names) == 29
     assert "chunks_fts" in names
     assert "alembic_version" in names
 

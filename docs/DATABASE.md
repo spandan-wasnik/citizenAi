@@ -2,7 +2,7 @@
 
 Version 0.1 · 2026-10-31 · Design only. Implemented with SQLAlchemy 2.0 models and Alembic migrations in Phase 1.
 
-**Checked:** the SQL below (with `CREATE TABLE` added to the shorthand) loads cleanly in SQLite as 28 tables, and 8 constraint cases were confirmed rejected: state scheme without a state, central scheme with a state, rule without a source, rule with an unregistered field, rule with invalid JSON, conditional document without a condition group, `verified_manual` link with no verifier, and an invalid assessment result. Not yet covered: triggers, indexes and the FTS5 table (created in the real migration).
+**Checked:** the SQL below (with `CREATE TABLE` added to the shorthand) loads cleanly in SQLite as 28 tables (a 29th, `scheme_conditions`, was added by migration 0004), and 8 constraint cases were confirmed rejected: state scheme without a state, central scheme with a state, rule without a source, rule with an unregistered field, rule with invalid JSON, conditional document without a condition group, `verified_manual` link with no verifier, and an invalid assessment result. Not yet covered: triggers, indexes and the FTS5 table (created in the real migration).
 
 ## Conventions
 
@@ -135,6 +135,10 @@ rules(
 ```
 
 The evaluator reads only `verified` rules. `source_doc_id` is `NOT NULL`, so a rule without a source cannot be stored.
+
+### 3b. Other conditions (added in migration 0004)
+
+Official conditions that a citizen's profile cannot settle (for example "no family member is a government employee") are stored as text in `scheme_conditions(condition_id, scheme_id, position, kind exclusion|requirement, texts JSON {lang: text}, source_doc_id, source_locator)`. The engine never evaluates them. It returns them with every assessment and adds the warning `confirm_other_conditions`; the UI shows them as "confirm these officially". A condition with no source or no English text is rejected by the data-file validator.
 
 ## 4. Documents, steps, links
 

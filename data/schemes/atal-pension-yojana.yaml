@@ -71,3 +71,13 @@ steps:
     - instruction: You may give the bank your mobile number to receive updates on your APY account and the scheme, and you may also give your Aadhaar number.
       source: faq
       locator: "FAQ 'Who can subscribe to APY?', closing paragraph"
+
+other_conditions:
+  - kind: requirement
+    text: {en: "The scheme is open to citizens of India."}
+    source: faq
+    locator: "FAQ 'Who can subscribe to APY?', opening line"
+  - kind: requirement
+    text: {en: "You need a savings bank account or post office savings account; if you do not have one you can open it when enrolling."}
+    source: faq
+    locator: "FAQ 'Who can subscribe to APY?', point (ii); FAQ 'What is the procedure for opening APY Account?'"

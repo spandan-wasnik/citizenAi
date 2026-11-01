@@ -152,6 +152,7 @@ def _clear_children(session: Session, scheme_id: str) -> None:
     session.execute(delete(m.ApplicationStep).where(m.ApplicationStep.scheme_id == sid))
     session.execute(delete(m.SchemeDocument).where(m.SchemeDocument.scheme_id == sid))
     session.execute(delete(m.RuleGroup).where(m.RuleGroup.scheme_id == sid))  # cascades to rules
+    session.execute(delete(m.SchemeCondition).where(m.SchemeCondition.scheme_id == sid))
     session.execute(delete(m.Link).where(m.Link.scheme_id == sid))
     session.execute(delete(m.SchemeTag).where(m.SchemeTag.scheme_id == sid))
     session.execute(delete(m.SchemeTranslation).where(m.SchemeTranslation.scheme_id == sid))
@@ -263,6 +264,11 @@ def upsert_scheme(session: Session, scheme: SchemeFile, source_ids: dict[str, in
             _write_rule(session, ex.group_id, rule, doc_ids, rule_status)
     cond_ids = {name: _write_group(session, scheme, g, "conditional", None, doc_ids, rule_status)
                 for name, g in scheme.condition_groups.items()}
+
+    for pos, cond in enumerate(scheme.other_conditions):
+        session.add(m.SchemeCondition(scheme_id=sid, position=pos, kind=cond.kind,
+                                      texts=json.dumps(cond.text, ensure_ascii=False),
+                                      source_doc_id=doc_ids[cond.source], source_locator=cond.locator))
 
     for doc in scheme.documents:
         if session.get(m.DocumentCatalog, doc.code) is None:

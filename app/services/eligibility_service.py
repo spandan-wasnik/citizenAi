@@ -14,7 +14,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.database import models as m
-from app.domain.eligibility import Assessment, Group, Rule, SchemeRules, evaluate_group, evaluate_scheme, Tri
+from app.domain.eligibility import (
+    Assessment, Group, OtherCondition, Rule, SchemeRules, Tri, evaluate_group, evaluate_scheme,
+)
 from app.domain.scheme_schema import GroupSpec, RuleSpec, SchemeFile
 
 
@@ -43,10 +45,11 @@ def from_scheme_file(scheme: SchemeFile) -> SchemeRules:
 
     exclusions = (Group("NOT_ANY", tuple(rule(r) for r in scheme.exclusions), "Exclusion criteria")
                   if scheme.exclusions else None)
+    others = tuple(OtherCondition(c.kind, dict(c.text), urls[c.source][0], c.locator) for c in scheme.other_conditions)
     return SchemeRules(
         scheme.scheme_id, group(scheme.eligibility) if scheme.eligibility else None, exclusions,
         scheme.rules_complete, scheme.status, scheme.verification_status, scheme.volatility,
-        scheme.last_verified, scheme.next_review_due, scheme.application_deadline)
+        scheme.last_verified, scheme.next_review_due, scheme.application_deadline, others)
 
 
 # ----------------------------------------------------------------------------- from the database
@@ -77,9 +80,14 @@ def load_scheme_rules(session: Session, scheme_id: str) -> SchemeRules:
             m.RuleGroup.scheme_id == scheme_id, m.RuleGroup.purpose == purpose,
             m.RuleGroup.parent_group_id.is_(None)).order_by(m.RuleGroup.group_id))
         top[purpose] = _load_group(session, gid) if gid is not None else None
+    others = tuple(
+        OtherCondition(c.kind, json.loads(c.texts), doc.url if doc else None, c.source_locator)
+        for c in session.scalars(select(m.SchemeCondition).where(m.SchemeCondition.scheme_id == scheme_id)
+                                 .order_by(m.SchemeCondition.position))
+        for doc in [session.get(m.SourceDocument, c.source_doc_id)])
     return SchemeRules(
         scheme_id, top["eligibility"], top["exclusion"], bool(s.rules_complete), s.status, s.verification_status,
-        s.volatility, _d(s.last_verified), _d(s.next_review_due), _d(s.application_deadline))
+        s.volatility, _d(s.last_verified), _d(s.next_review_due), _d(s.application_deadline), others)
 
 
 def load_condition_group(session: Session, group_id: int) -> Group:

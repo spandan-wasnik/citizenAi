@@ -158,3 +158,48 @@ def test_ladki_bahin_has_no_invented_links_and_cites_its_source(engine):
     assert scheme.links == [] and scheme.application_deadline is None
     assert scheme.sources[0].url == "https://www.maharashtra.gov.in/"  # the real exact PDF address is not known yet
     assert "28 June 2024" in scheme.sources[0].title
+
+
+# ----------------------------------------------------------------- rajarshi-shahu-maharaj-ebc-fee-concession
+EBC = "rajarshi-shahu-maharaj-ebc-fee-concession"
+STUDENT = {"domicile_state_code": "MH", "is_enrolled_in_education": True, "annual_family_income": 150000,
+           "receives_other_scholarship": False}
+
+
+def test_ebc_rules_and_boundaries(engine):
+    assert run(engine, EBC, STUDENT).top.value == "PASS"
+    assert run(engine, EBC, {**STUDENT, "annual_family_income": 800000}).top.value == "PASS"
+    assert run(engine, EBC, {**STUDENT, "annual_family_income": 800001}).top.value == "FAIL"
+    assert run(engine, EBC, {**STUDENT, "domicile_state_code": "GJ"}).top.value == "FAIL"
+    assert run(engine, EBC, {**STUDENT, "is_enrolled_in_education": False}).top.value == "FAIL"
+    assert run(engine, EBC, {**STUDENT, "receives_other_scholarship": True}).top.value == "FAIL"  # Eligibility (f)
+
+
+def test_ebc_never_gives_a_firm_verdict_and_asks_the_right_questions(engine):
+    assert run(engine, EBC, STUDENT).status is Status.REQUIRES_OFFICIAL_VERIFICATION
+    a = run(engine, EBC, {"domicile_state_code": "MH"})
+    assert a.status is Status.INSUFFICIENT_INFORMATION
+    assert {m.field for m in a.missing_fields} == {"is_enrolled_in_education", "annual_family_income",
+                                                  "receives_other_scholarship"}
+
+
+def test_shared_document_names_do_not_clash_between_schemes(engine):
+    from sqlalchemy import text
+    with session_scope(engine) as s:
+        rows = s.execute(text("SELECT document_code, COUNT(*) FROM document_translations GROUP BY document_code, lang "
+                              "HAVING COUNT(*) > 1")).all()
+    assert rows == []
+
+
+# ----------------------------------------------------------------- other conditions in the real data
+@pytest.mark.parametrize("scheme", SCHEMES, ids=lambda s: s.scheme_id)
+def test_every_real_scheme_lists_its_unchecked_conditions_with_sources(scheme):
+    assert scheme.other_conditions, "every real scheme here has official conditions the engine cannot check"
+    for c in scheme.other_conditions:
+        assert c.locator.strip() and c.text["en"].strip()
+
+
+def test_pm_kisan_and_ladki_bahin_exclusions_are_listed_not_modelled(engine):
+    pm = run(engine, "pm-kisan", {"owns_agricultural_land": True})
+    assert len(pm.other_conditions) >= 8 and "confirm_other_conditions" in pm.warnings
+    assert sum(c.kind == "exclusion" for c in run(engine, LB, WOMAN).other_conditions) == 7
