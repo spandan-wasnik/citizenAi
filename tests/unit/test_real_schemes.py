@@ -92,7 +92,7 @@ def test_shared_document_code_is_consistent_across_schemes(engine):
     with session_scope(engine) as s:
         rows = s.execute(text("SELECT scheme_id, requirement_type FROM scheme_documents "
                               "WHERE document_code='aadhaar' ORDER BY scheme_id")).all()
-    assert [r[0] for r in rows] == ["atal-pension-yojana", "pm-kisan", "post-matric-scholarship-sc"]
+    assert [r[0] for r in rows] == ["atal-pension-yojana", "mukhyamantri-majhi-ladki-bahin", "pm-kisan", "post-matric-scholarship-sc"]
 
 
 # ----------------------------------------------------------------- post-matric-scholarship-sc
@@ -120,3 +120,41 @@ def test_pms_sc_never_gives_a_firm_verdict_and_flags_the_sensitive_question(engi
     assert b.status is Status.INSUFFICIENT_INFORMATION
     assert [(m.field, m.sensitive) for m in b.missing_fields] == [("social_category", True)]
     assert all("Postmatric_SC.pdf" in r.rule.source_url for r in b.results)
+
+
+# ----------------------------------------------------------------- mukhyamantri-majhi-ladki-bahin
+LB = "mukhyamantri-majhi-ladki-bahin"
+WOMAN = {"gender": "female", "state_code": "MH", "age_years": 30, "annual_family_income": 200000, "has_bank_account": True}
+
+
+def test_ladki_bahin_definite_failures(engine):
+    assert run(engine, LB, {**WOMAN, "age_years": 20}).top.value == "FAIL"
+    assert run(engine, LB, {**WOMAN, "gender": "male"}).top.value == "FAIL"
+    assert run(engine, LB, {**WOMAN, "state_code": "GJ"}).top.value == "FAIL"
+    assert run(engine, LB, {**WOMAN, "annual_family_income": 250001}).top.value == "FAIL"
+    assert run(engine, LB, {**WOMAN, "has_bank_account": False}).top.value == "FAIL"
+
+
+def test_ladki_bahin_upper_age_is_never_a_definite_no(engine):
+    # the age ceiling is official_only: an amendment to 65 is reported but unread
+    for age in (59, 60, 64, 70):
+        a = run(engine, LB, {**WOMAN, "age_years": age})
+        assert a.top.value == "OFFICIAL_ONLY", age
+        assert a.status is Status.REQUIRES_OFFICIAL_VERIFICATION
+    assert run(engine, LB, {**WOMAN, "age_years": 21}).top.value == "OFFICIAL_ONLY"
+    assert run(engine, LB, {**WOMAN, "age_years": 30}).results[3].reason_code == "official_only"
+
+
+def test_ladki_bahin_asks_only_decisive_questions_and_marks_gender_sensitive(engine):
+    a = run(engine, LB, {"state_code": "MH", "age_years": 30})
+    assert a.status is Status.INSUFFICIENT_INFORMATION
+    assert {(m.field, m.sensitive) for m in a.missing_fields} == {
+        ("gender", True), ("annual_family_income", False), ("has_bank_account", False)}
+    assert run(engine, LB, {"state_code": "GJ"}).missing_fields == ()  # outside Maharashtra: nothing else matters
+
+
+def test_ladki_bahin_has_no_invented_links_and_cites_its_source(engine):
+    scheme = next(s for s in SCHEMES if s.scheme_id == LB)
+    assert scheme.links == [] and scheme.application_deadline is None
+    assert scheme.sources[0].url == "https://www.maharashtra.gov.in/"  # the real exact PDF address is not known yet
+    assert "28 June 2024" in scheme.sources[0].title

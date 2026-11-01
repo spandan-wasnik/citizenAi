@@ -1,0 +1,128 @@
+# Mukhyamantri - Majhi Ladki Bahin (Maharashtra). Built ONLY from the Government Resolution of the Women and Child
+# Development Department, Maharashtra, No. मबावि 2024/प्र.क्र.96/कार्या-2 dated 28 June 2024 (document code
+# 202406281814018230; 9 pages, in Marathi), attached by the project owner on 2026-11-01. The Marathi text was read and
+# translated by Claude; the owner reads Marathi and confirmed the reading of the age wording.
+# Known limits:
+#  (1) the GR says it is published on www.maharashtra.gov.in; the exact PDF address was NOT supplied, so the source
+#      points at that site's home page and the GR is identified by number, date and code in its title. Replace the
+#      URL with the exact address when it is known (archive.org copies were offered and are not official sources);
+#  (2) the GR sets the age band as 21 completed up to 60 completed (ages 21 to 59). A LATER amendment raising the
+#      ceiling to 65 is reported to the owner but no document has been read, so the upper age bound is official_only:
+#      it never produces a "not met" verdict;
+#  (3) the application window in para 14 (1-15 July 2024) is long past and later dates are unknown, so status is
+#      'unknown' and no deadline is recorded;
+#  (4) a circular of 6 Feb 2026 (code 202602061212231330) allowed a last e-KYC correction until 31 Mar 2026; it
+#      changes no eligibility rule and is not cited here;
+#  (5) NOT modelled as rules (para 5 and 4): family member who is a government employee or pensioner, income-tax payer,
+#      current or former MP/MLA, or chair/director/member of a government board; family land of more than five acres;
+#      a family four-wheeler (tractors excepted); getting Rs. 1,500 or more from another scheme; and marital status
+#      ("married, widowed, divorced, abandoned, destitute" does not map onto the marital-status values).
+scheme_id: mukhyamantri-majhi-ladki-bahin
+level: state
+state_code: MH
+ministry: null
+department: Women and Child Development Department, Government of Maharashtra
+status: unknown
+volatility: volatile
+verification_status: source_verified
+rules_complete: false
+last_verified: 2026-11-01
+next_review_due: 2026-12-01
+tags: [women, maharashtra, cash-transfer]
+
+translations:
+  en:
+    official_name: Mukhyamantri - Majhi Ladki Bahin Yojana
+    short_description: >-
+      Monthly financial support for married, widowed, divorced, abandoned and destitute women of Maharashtra aged 21
+      to 60, from families with annual income up to Rs. 2.5 lakh. The resolution lists several family-level
+      exclusions (government employees and pensioners, income-tax payers, current or former MPs and MLAs, board
+      heads, more than five acres of land, a four-wheeler); this record does not model them. A later change to the
+      upper age limit has been reported but not yet read from an official document.
+    benefits: >-
+      Rs. 1,500 per month, paid by Direct Benefit Transfer into the woman's own Aadhaar-linked bank account. If she
+      already receives less than Rs. 1,500 a month from another Central or State financial benefit scheme, the
+      difference is paid.
+    target_beneficiaries: >-
+      Married, widowed, divorced, abandoned and destitute women of Maharashtra aged between 21 and 60 years.
+    origin: curated
+  mr:
+    official_name: मुख्यमंत्री-माझी लाडकी बहीण योजना
+    origin: official
+
+sources:
+  - key: gr_2024
+    url: https://www.maharashtra.gov.in/
+    title: Government Resolution No. मबावि 2024/प्र.क्र.96/कार्या-2, 28 June 2024, Women and Child Development Department (document code 202406281814018230); the GR states it is published on this site
+    doc_type: pdf
+    retrieved_at: 2026-11-01
+    retrieval_method: manual_curation
+    language: mr
+
+links: []
+
+eligibility:
+  logic: AND
+  items:
+    - rule: {field: gender, op: eq, value: female, source: gr_2024, locator: "paras 3 and 4(1)"}
+    - rule: {field: state_code, op: eq, value: MH, source: gr_2024, locator: "para 4(1)"}
+    - rule: {field: age_years, op: gte, value: 21, source: gr_2024, locator: "para 4(3)"}
+    - rule: {field: age_years, op: lte, value: 59, evaluability: official_only, source: gr_2024, locator: "para 4(3); a later amendment is reported but not read"}
+    - rule: {field: annual_family_income, op: lte, value: 250000, source: gr_2024, locator: "paras 4(5) and 5(1)"}
+    - rule: {field: has_bank_account, op: is_true, source: gr_2024, locator: "para 4(4)"}
+
+documents:
+  - code: aadhaar
+    requirement_type: mandatory
+    names: {en: Aadhaar number}
+    purpose_note: The benefit goes into an Aadhaar-linked bank account, and e-KYC is done with your own Aadhaar.
+    source: gr_2024
+    locator: "paras 6(2), 9(अ)(5) and 9(ई)"
+  - code: domicile_certificate
+    requirement_type: mandatory
+    names: {en: Maharashtra domicile certificate or birth certificate issued in Maharashtra}
+    source: gr_2024
+    locator: "para 6(3)"
+  - code: income_certificate
+    requirement_type: mandatory
+    names: {en: Income certificate}
+    purpose_note: The family head's income certificate from the competent authority, showing annual income up to Rs. 2.5 lakh.
+    source: gr_2024
+    locator: "para 6(4)"
+  - code: bank_account_details
+    requirement_type: mandatory
+    names: {en: Bank account number and IFSC code}
+    purpose_note: A photocopy of the first page of the passbook. The account must be Aadhaar-linked and Direct Benefit Transfer enabled.
+    source: gr_2024
+    locator: "paras 2, 6(5) and 9(ई)"
+  - code: passport_photograph
+    requirement_type: mandatory
+    names: {en: Passport-size photograph}
+    source: gr_2024
+    locator: "para 6(6)"
+  - code: ration_card
+    requirement_type: mandatory
+    names: {en: Ration card}
+    purpose_note: Also needed in person for e-KYC, as the family's full identity document.
+    source: gr_2024
+    locator: "paras 6(7) and 9(अ)(5)"
+  - code: undertaking_scheme_conditions
+    requirement_type: mandatory
+    names: {en: Undertaking that you comply with the scheme's conditions}
+    source: gr_2024
+    locator: "para 6(8)"
+
+steps:
+  en:
+    - instruction: Apply online on the scheme's portal or mobile app, or at a Setu Suvidha Kendra. If you cannot apply online, the form is available at the Anganwadi centre, the Child Development Project Officer's office, the Gram Panchayat or the ward office, where staff enter it online for you. The whole process is free.
+      source: gr_2024
+      locator: "para 9(अ)(1)-(4)"
+    - instruction: Be present in person at that place so that your photo can be taken directly and e-KYC done. Bring your family's ration card and your own Aadhaar card.
+      source: gr_2024
+      locator: "para 9(अ)(5)"
+    - instruction: A provisional list of applicants is published on the portal and app and put on notice boards at the Anganwadi, Gram Panchayat and ward level. Any objection or complaint must be recorded within 5 days of the list being published.
+      source: gr_2024
+      locator: "paras 9(ब) and 9(क)"
+    - instruction: A final list of eligible and ineligible applicants is published. The money is paid into your own Aadhaar-linked, Direct Benefit Transfer enabled bank account through the District Women and Child Development Officer's office.
+      source: gr_2024
+      locator: "paras 9(ड) and 9(ई)"
