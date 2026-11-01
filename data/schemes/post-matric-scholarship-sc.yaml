@@ -1,0 +1,116 @@
+# Post Matric Scholarship for SC students (studies in India). Built ONLY from the Ministry of Social Justice &
+# Empowerment guidelines PDF "Post Matric Scholarships to the students belonging to Scheduled Castes for studies in India
+# (2020-2021 to 2025-26)", dated March 2021 (18 pages), attached by the project owner on 2026-11-01. A separate text
+# summary the owner also supplied was NOT used, because it is not the official text.
+# Known limits:
+#  (1) the guidelines cover 2020-21 to 2025-26 and the funding paragraph (10.1) says "up to the financial year 2025-26";
+#      this file cannot show that the scheme continues, so status stays 'unknown';
+#  (2) the income ceiling in 5.3 is the PARENTS'/GUARDIANS' income, while the profile field is total family income;
+#  (3) NOT modelled as rules: Indian nationality (5.1), having passed Class 10 or higher (5.2: a registered student
+#      can be about to take admission, so the education-level field would reject valid people), recognised
+#      institutions (4), a different subject in the same stage (5.5), arbitrary/management/NRI-quota seats (5.9);
+#  (4) holding another scholarship is NOT an exclusion: para 5.8 lets the student choose the more beneficial one.
+scheme_id: post-matric-scholarship-sc
+level: central
+state_code: null
+ministry: Ministry of Social Justice & Empowerment
+department: Department of Social Justice & Empowerment
+status: unknown
+volatility: volatile
+verification_status: source_verified
+rules_complete: false
+last_verified: 2026-11-01
+next_review_due: 2026-12-01
+tags: [scholarship, sc, higher-education, centrally-sponsored]
+
+translations:
+  en:
+    official_name: Post Matric Scholarships to the students belonging to Scheduled Castes for studies in India
+    short_description: >-
+      Scholarship for Scheduled Caste students studying at post-matriculation or post-secondary level in recognised
+      institutions in India, whose parents' or guardians' income from all sources did not exceed Rs. 2,50,000 in the
+      last financial year. The awardee is selected by the State or UT where the student is domiciled. The guidelines
+      cover 2020-21 to 2025-26; this record does not confirm that the scheme continues after that.
+    benefits: >-
+      Compulsory non-refundable fees including tuition fee, as fixed by the State's Fee Fixation/Rationalization
+      Committee, plus a yearly academic allowance of Rs. 2,500 to Rs. 13,500 depending on the course group and on
+      hosteller or day-scholar status (rates stated for 2021-22; they are revised every year). Ten percent extra
+      allowance for Divyang students. Students on correspondence or online courses get no academic allowance.
+    target_beneficiaries: >-
+      Nationals of India belonging to a Scheduled Caste of the State or UT where they are domiciled, who have passed
+      Matriculation or Higher Secondary or any higher examination and study post-matric courses in India.
+    origin: curated
+
+sources:
+  - key: guidelines
+    url: https://scholarships.gov.in/public/schemeGuidelines/Postmatric_SC.pdf
+    title: Guidelines, Post Matric Scholarships to the students belonging to Scheduled Castes for studies in India (2020-21 to 2025-26), March 2021
+    doc_type: pdf
+    retrieved_at: 2026-11-01
+    retrieval_method: manual_curation
+    language: en
+
+links:
+  - url: https://scholarships.gov.in/
+    link_type: application
+    notes: National Scholarship Portal, named in paragraph 13.1. A State may run its own portal instead (paragraph 13.2).
+  - url: https://scholarships.gov.in/public/schemeGuidelines/Postmatric_SC.pdf
+    link_type: guidelines
+
+eligibility:
+  logic: AND
+  items:
+    - rule: {field: social_category, op: eq, value: sc, source: guidelines, locator: "para 5.2"}
+    - rule: {field: annual_family_income, op: lte, value: 250000, source: guidelines, locator: "paras 5.3 and 6.2"}
+
+documents:
+  - code: aadhaar
+    requirement_type: mandatory
+    names: {en: Aadhaar number}
+    purpose_note: An Aadhaar ID or Aadhaar enrolment ID, or another form of ID notified by the Ministry, is given when registering for the Freeship Card.
+    source: guidelines
+    locator: "paras 8.2, 11.5 and 13.2(b)"
+  - code: caste_certificate
+    requirement_type: mandatory
+    names: {en: Caste certificate}
+    purpose_note: Duly signed by the authorized officer. The guidelines want this checked automatically from State databases; until that is in place it is scanned and uploaded.
+    source: guidelines
+    locator: "para 8.3"
+  - code: income_certificate
+    requirement_type: mandatory
+    names: {en: Income certificate}
+    purpose_note: Issued by the authority the State Government decides. Needed once, at admission, for courses lasting more than one year.
+    source: guidelines
+    locator: "paras 5.3 and 8.3"
+  - code: previous_exam_certificates
+    requirement_type: mandatory
+    names: {en: Certificates and marksheets of the examinations you have passed}
+    source: guidelines
+    locator: "para 8.3"
+  - code: passport_photograph
+    requirement_type: mandatory
+    names: {en: Passport-size photograph}
+    source: guidelines
+    locator: "para 8.3"
+  - code: bank_account_details
+    requirement_type: optional
+    names: {en: Bank account number and IFSC code}
+    purpose_note: Payment goes into the student's account by Direct Benefit Transfer. Students are encouraged to have an Aadhaar-linked account.
+    source: guidelines
+    locator: "paras 5.10 and 11.1"
+
+steps:
+  en:
+    - instruction: Well before the expected date of admission, register on the scholarship portal (the National Scholarship Portal or your State's portal) for a Freeship Card, giving your Aadhaar number, the course you want to join, and an undertaking to pay the institution within 7 working days of receiving the scholarship.
+      link: https://scholarships.gov.in/
+      source: guidelines
+      locator: "paras 8.2 and 17.1"
+    - instruction: The State or UT verifies you and issues the Freeship Card within 30 days. The card lets you take admission without paying tuition and hostel fees in advance. It is valid for one year from issue for admission.
+      source: guidelines
+      locator: "paras 8.1, 8.4 and 8.5"
+    - instruction: On the day you are admitted, apply for the scholarship on the portal, giving your Freeship Card details, the course and the institution.
+      source: guidelines
+      locator: "paras 9.1 and 17.2"
+    - instruction: The scholarship is paid directly into your bank account. Students already receiving it are renewed automatically each year, subject to promotion and at least 75% attendance.
+      source: guidelines
+      locator: "paras 11.1, 12.1 and 17.3"

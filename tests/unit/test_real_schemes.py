@@ -92,4 +92,31 @@ def test_shared_document_code_is_consistent_across_schemes(engine):
     with session_scope(engine) as s:
         rows = s.execute(text("SELECT scheme_id, requirement_type FROM scheme_documents "
                               "WHERE document_code='aadhaar' ORDER BY scheme_id")).all()
-    assert [r[0] for r in rows] == ["atal-pension-yojana", "pm-kisan"]
+    assert [r[0] for r in rows] == ["atal-pension-yojana", "pm-kisan", "post-matric-scholarship-sc"]
+
+
+# ----------------------------------------------------------------- post-matric-scholarship-sc
+PMS = "post-matric-scholarship-sc"
+
+
+def test_pms_sc_rules_and_boundaries(engine):
+    ok = {"social_category": "sc", "annual_family_income": 250000}
+    assert run(engine, PMS, ok).top.value == "PASS"
+    assert run(engine, PMS, {**ok, "annual_family_income": 250001}).top.value == "FAIL"
+    assert run(engine, PMS, {**ok, "social_category": "obc"}).top.value == "FAIL"
+
+
+def test_pms_sc_holding_another_scholarship_is_not_an_exclusion(engine):
+    # guidelines para 5.8: the student chooses the more beneficial scholarship; it is not a disqualification
+    a = run(engine, PMS, {"social_category": "sc", "annual_family_income": 100000, "receives_other_scholarship": True})
+    assert a.top.value == "PASS"
+
+
+def test_pms_sc_never_gives_a_firm_verdict_and_flags_the_sensitive_question(engine):
+    a = run(engine, PMS, {"social_category": "sc", "annual_family_income": 100000})
+    assert a.status is Status.REQUIRES_OFFICIAL_VERIFICATION
+    assert {"rules_incomplete", "scheme_status_unknown"} <= set(a.reasons)
+    b = run(engine, PMS, {"annual_family_income": 100000})
+    assert b.status is Status.INSUFFICIENT_INFORMATION
+    assert [(m.field, m.sensitive) for m in b.missing_fields] == [("social_category", True)]
+    assert all("Postmatric_SC.pdf" in r.rule.source_url for r in b.results)
