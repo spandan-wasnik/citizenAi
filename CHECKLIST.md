@@ -42,7 +42,7 @@ Goal: a working skeleton on solid ground, with the riskiest data-model decision 
 ## Phase 2 — Core intelligence  *(about 6–8 sessions)*
 
 - [ ] i18n catalog (en/hi/mr): rule-explanation templates, UI text, protected-terms glossary
-- [ ] Normalisation: Devanagari digits, lakh/crore/thousand, Indian number formats, spelling variants
+- [x] **2.1 Normalisation** (`app/nlp/normalize.py`): Devanagari digits, lakh/crore/thousand, Indian grouping, nukta/chandrabindu variants, hi/mr number words and डेढ़/ढाई/सवा idioms; ranges and ambiguous input yield nothing. 45 tests. *Word lists need a native-speaker review.*
 - [ ] Entity extractor (rules + trilingual lexicons) with provenance (explicit vs inferred)
 - [ ] Language detection (script + marker words, romanised Hindi/Marathi lexicon); gold-set accuracy reported
 - [ ] Intent classifier (rule-based first)
