@@ -291,6 +291,7 @@ are involved in eligibility. Each rule shows where it came from.
 
 **Honest limits.** We list only a few schemes so far, each checked against official text we were given.
 Rules and deadlines change, so a result is never an approval. Links open the official site in a new tab.
+
 **Language.** Only English is available at the moment. Hindi and Marathi are planned and will not be
 simulated before they are real.
 """)
