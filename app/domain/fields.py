@@ -13,6 +13,17 @@ STATE_CODES: frozenset[str] = frozenset({
     "AN", "CH", "DH", "DL", "JK", "LA", "LD", "PY",                                # union territories
 })
 
+STATE_NAMES: dict[str, str] = {
+    "AP": "Andhra Pradesh", "AR": "Arunachal Pradesh", "AS": "Assam", "BR": "Bihar", "CG": "Chhattisgarh",
+    "GA": "Goa", "GJ": "Gujarat", "HR": "Haryana", "HP": "Himachal Pradesh", "JH": "Jharkhand", "KA": "Karnataka",
+    "KL": "Kerala", "MP": "Madhya Pradesh", "MH": "Maharashtra", "MN": "Manipur", "ML": "Meghalaya", "MZ": "Mizoram",
+    "NL": "Nagaland", "OD": "Odisha", "PB": "Punjab", "RJ": "Rajasthan", "SK": "Sikkim", "TN": "Tamil Nadu",
+    "TS": "Telangana", "TR": "Tripura", "UP": "Uttar Pradesh", "UK": "Uttarakhand", "WB": "West Bengal",
+    "AN": "Andaman and Nicobar Islands", "CH": "Chandigarh",
+    "DH": "Dadra and Nagar Haveli and Daman and Diu", "DL": "Delhi", "JK": "Jammu and Kashmir", "LA": "Ladakh",
+    "LD": "Lakshadweep", "PY": "Puducherry",
+}
+
 # (field_key, value_type, enum_values, is_sensitive, description)
 PROFILE_FIELDS: list[tuple[str, str, list[str] | None, int, str]] = [
     ("age_years", "int", None, 0, "Age in completed years (relative to the rule's as_of date when given)"),

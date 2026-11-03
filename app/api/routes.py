@@ -16,7 +16,7 @@ from app.config import get_settings
 from app.database import models as m
 from app.domain.eligibility import Assessment, SENSITIVE_FIELDS, Status
 from app.domain.explain import LABELS, PRELIMINARY_NOTICE, REASON_TEXT, STATUS_TEXT, explain_result
-from app.domain.fields import PROFILE_FIELDS
+from app.domain.fields import PROFILE_FIELDS, STATE_NAMES
 from app.services.catalog_service import SUPPORTED_LANGS, get_scheme_detail, list_schemes
 from app.services.eligibility_service import SchemeNotFound, evaluate_from_db
 
@@ -102,10 +102,19 @@ def health(request: Request) -> dict[str, Any]:
 
 # ----------------------------------------------------------------------------- catalogue
 @router.get("/api/v1/fields")
-def fields() -> dict[str, Any]:
-    """The questions the evaluator understands, so a client can build a form that matches."""
+def fields(session: Session = Depends(get_session)) -> dict[str, Any]:
+    """The questions the evaluator understands, so a client can build a form that matches.
+    `used_by` lists the schemes whose rules need the answer: a client should ask only for fields that are used."""
+    used: dict[str, list[str]] = {}
+    for field_key, scheme_id in session.execute(
+            select(m.Rule.field_key, m.RuleGroup.scheme_id).join(m.RuleGroup, m.Rule.group_id == m.RuleGroup.group_id)
+            .distinct().order_by(m.RuleGroup.scheme_id)):
+        used.setdefault(field_key, []).append(scheme_id)
+    state_fields = {"state_code", "domicile_state_code", "study_state_code"}
     return {"fields": [{"key": k, "type": t, "allowed_values": sorted(v) if v else None,
-                        "sensitive": bool(sens), "label": LABELS["en"].get(k, k), "description": d}
+                        "value_labels": ({c: STATE_NAMES[c] for c in sorted(STATE_NAMES)} if k in state_fields else None),
+                        "sensitive": bool(sens), "label": LABELS["en"].get(k, k), "description": d,
+                        "used_by": used.get(k, [])}
                        for k, t, v, sens, d in PROFILE_FIELDS]}
 
 

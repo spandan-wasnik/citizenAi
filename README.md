@@ -63,3 +63,12 @@ python scripts/verify_sources.py                                # check every li
 
 The checker obeys robots.txt, spaces requests per site, never contacts sites whose terms prohibit automated access,
 and never fetches suspicious links. A reachable page is **not** proof a link is official; only a person can mark a link `verified_manual`.
+
+## Run the app (Windows, from the repo folder with the venv active)
+```
+python -m scripts.init_db
+python -m scripts.seed_database
+python -m uvicorn app.main:create_app --factory --reload     # API: http://127.0.0.1:8000/docs
+python -m streamlit run frontend/app.py                      # UI (second terminal): http://localhost:8501
+```
+The UI talks to the API at `CITIZENASSIST_API_URL` (default `http://127.0.0.1:8000`).
