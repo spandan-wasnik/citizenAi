@@ -51,6 +51,7 @@ class Clarification:
     field: str
     reason: str              # machine-readable, e.g. "income_whose"
     evidence: str
+    value: int | None = None  # for income_whose: the amount, so the next answer ("family") can complete it
 
 
 @dataclass
@@ -135,6 +136,7 @@ SOCIAL = {
 }
 SOCIAL_CUE = re.compile(alt("category", "caste", "tribe", "belong", "belongs", "i am", "i'm", "वर्ग", "प्रवर्ग", "श्रेणी", "जाति", "जाती", "जमाती",
                             "मैं", "मै", "मी", "आहे", "हूं", "है", "से हूं", "चा", "ची"))
+BARE_GENERAL = alt("general", "open", "gen", "unreserved", "सामान्य", "खुला", "खुल्या", "खुला वर्ग")
 OCCUPATION = {
     "farmer": alt("farmer", "farming", "किसान", "शेतकरी", "खेती करता", "शेती करतो", "शेती करते"),
     "student": alt("student", "students", "विद्यार्थी", "विद्यार्थिनी", "छात्र", "छात्रा"),
@@ -253,6 +255,33 @@ def _bool_answer(norm: str, expected: str | None) -> list[Extraction]:
     return []
 
 
+def _bare_enum(norm: str, expected: str | None) -> list[Extraction]:
+    """A bare 'female', 'SC', 'farmer' or 'village' answers the multiple-choice question that was just asked."""
+    t = re.sub(r"[\s.!?।]+", " ", norm).strip()
+    if not t or expected is None:
+        return []
+    if expected == "gender":
+        for g, w in GENDER.items():
+            if re.fullmatch(w, t):
+                return [Extraction("gender", g, "explicit", t)]
+    if expected == "social_category":
+        for cat, rxs in SOCIAL.items():
+            if any(re.fullmatch(rx, t) for rx in rxs):
+                return [Extraction("social_category", cat, "explicit", t)]
+        if re.fullmatch(BARE_GENERAL, t):  # only meaningful as the answer to the category question
+            return [Extraction("social_category", "general", "explicit", t)]
+    if expected == "occupation":
+        for occ, rx in OCCUPATION.items():
+            if re.fullmatch(rx, t):
+                return [Extraction("occupation", occ, "explicit", t)]
+    if expected == "residence_area":
+        if re.fullmatch(RURAL, t):
+            return [Extraction("residence_area", "rural", "explicit", t)]
+        if re.fullmatch(URBAN, t):
+            return [Extraction("residence_area", "urban", "explicit", t)]
+    return []
+
+
 def _land(norm: str) -> list[Extraction]:
     out = []
     for seg in _segments(norm):
@@ -359,7 +388,7 @@ def _income(norm: str, quantities: list[Quantity], expected: str | None) -> tupl
         elif expected == "annual_family_income":
             ex.append(Extraction("annual_family_income", amount, prov, evidence, note))
         else:
-            cl.append(Clarification("annual_family_income", "income_whose", evidence))
+            cl.append(Clarification("annual_family_income", "income_whose", evidence, amount))
     if not ex and not cl and expected in ("annual_family_income", "annual_individual_income") and len(money) == 1:
         q = money[0]
         if q.as_int is not None and re.fullmatch(r"[\s₹a-z.]*" + re.escape(q.raw) + r"[\s a-z.]{0,25}", norm):
@@ -374,6 +403,7 @@ def extract_profile(text: str, expected_field: str | None = None) -> ExtractionR
     res = ExtractionResult()
     found: list[Extraction] = []
     for part in (_age(norm, expected_field), _gender(norm), _state(norm, expected_field), _bool_answer(norm, expected_field),
+                 _bare_enum(norm, expected_field),
                  _land(norm), _bank(norm), _tax(norm), _education_and_occupation(norm), _social(norm), _area(norm)):
         found += part
     inc, clar = _income(norm, quantities, expected_field)

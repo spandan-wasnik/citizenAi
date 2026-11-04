@@ -447,5 +447,71 @@
   "id": "hi-asam-not-asaman",
   "text": "यह असमान व्यवस्था है",
   "explicit": {}
+ },
+ {
+  "id": "ans-gender",
+  "text": "female",
+  "expected_field": "gender",
+  "explicit": {
+   "gender": "female"
+  }
+ },
+ {
+  "id": "ans-gender-hi",
+  "text": "महिला",
+  "expected_field": "gender",
+  "explicit": {
+   "gender": "female"
+  }
+ },
+ {
+  "id": "ans-category",
+  "text": "SC",
+  "expected_field": "social_category",
+  "explicit": {
+   "social_category": "sc"
+  }
+ },
+ {
+  "id": "ans-category-mr",
+  "text": "खुला प्रवर्ग",
+  "expected_field": "social_category",
+  "explicit": {
+   "social_category": "general"
+  }
+ },
+ {
+  "id": "ans-bare-gender-unasked",
+  "text": "female",
+  "explicit": {}
+ },
+ {
+  "id": "ans-area",
+  "text": "village",
+  "expected_field": "residence_area",
+  "explicit": {
+   "residence_area": "rural"
+  }
+ },
+ {
+  "id": "ans-category-general-bare",
+  "text": "general",
+  "expected_field": "social_category",
+  "explicit": {
+   "social_category": "general"
+  }
+ },
+ {
+  "id": "ans-category-general-bare-unasked",
+  "text": "general",
+  "explicit": {}
+ },
+ {
+  "id": "ans-category-open-hi",
+  "text": "सामान्य",
+  "expected_field": "social_category",
+  "explicit": {
+   "social_category": "general"
+  }
  }
 ]
