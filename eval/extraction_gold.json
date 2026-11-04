@@ -513,5 +513,41 @@
   "explicit": {
    "social_category": "general"
   }
+ },
+ {
+  "id": "ans-gender-other",
+  "text": "other",
+  "expected_field": "gender",
+  "explicit": {
+   "gender": "other"
+  }
+ },
+ {
+  "id": "ans-gender-other-hi",
+  "text": "अन्य",
+  "expected_field": "gender",
+  "explicit": {
+   "gender": "other"
+  }
+ },
+ {
+  "id": "ans-gender-other-mr",
+  "text": "इतर",
+  "expected_field": "gender",
+  "explicit": {
+   "gender": "other"
+  }
+ },
+ {
+  "id": "ans-gender-other-unasked",
+  "text": "other",
+  "explicit": {}
+ },
+ {
+  "id": "en-self-transgender",
+  "text": "I am transgender",
+  "explicit": {
+   "gender": "other"
+  }
  }
 ]

@@ -18,6 +18,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from app.domain.fields import STATE_NAMES
+from app.i18n.catalog import catalog
 from app.nlp.normalize import END, START, Quantity, find_quantities, normalize_text
 
 
@@ -84,10 +85,13 @@ STATE_ALIASES: dict[str, list[str]] = {
     "JH": ["झारखंड", "jharkhand"], "UK": ["उत्तराखंड", "uttarakhand"], "HP": ["हिमाचल प्रदेश", "himachal pradesh"],
     "AS": ["असम", "आसाम", "assam"], "GA": ["गोवा", "goa"],
 }
-for _code, _name in STATE_NAMES.items():  # English names for every state/UT, so none is silently missing
+# Every name we ever print (English, Hindi, Marathi catalogs) must be understood when typed back.
+for _code, _name in STATE_NAMES.items():
     STATE_ALIASES.setdefault(_code, [])
-    if _name.lower() not in [a.lower() for a in STATE_ALIASES[_code]]:
-        STATE_ALIASES[_code].append(_name)
+    for _lang in ("en", "hi", "mr"):
+        _printed = _name if _lang == "en" else catalog(_lang)["states"][_code]
+        if N(_printed) not in [N(a) for a in STATE_ALIASES[_code]]:
+            STATE_ALIASES[_code].append(_printed)
 # Well-known, unambiguous cities only. A city gives an *inferred* state: it still has to be confirmed.
 CITY_TO_STATE = {"pune": "MH", "पुणे": "MH", "mumbai": "MH", "मुंबई": "MH", "nagpur": "MH", "नागपूर": "MH",
                  "नागपुर": "MH", "nashik": "MH", "नाशिक": "MH", "thane": "MH", "ठाणे": "MH", "kolhapur": "MH",
@@ -122,7 +126,10 @@ FROM = alt("from", "से", "मधून", "येथील", "चा", "च�
 GENDER = {
     "female": alt("woman", "female", "girl", "lady", "महिला", "औरत", "लड़की", "लडकी", "स्त्री", "मुलगी", "बाई"),
     "male": alt("man", "male", "boy", "gentleman", "पुरुष", "आदमी", "लड़का", "लडका", "मुलगा"),
+    "other": alt("transgender", "non-binary", "nonbinary", "third gender", "ट्रांसजेंडर", "तृतीयपंथी", "थर्ड जेंडर"),
 }
+# 'other' is offered as an answer to the gender question, so a bare 'other' / अन्य / इतर must be understood there too.
+BARE_GENDER_OTHER = alt("other", "अन्य", "इतर")
 GAP_WORDS = {N(w) for w in ("a", "an", "am", "is", "also", "young", "old", "year", "years", "yr", "yrs", "year-old", "married",
                             "unmarried", "single", "एक", "साल", "की", "का", "ची", "चा", "आहे", "हूं", "है", "विवाहित", "अविवाहित")}
 MAX_GAP_WORDS = 8
@@ -168,8 +175,21 @@ _BOOL_FIELDS = {"owns_agricultural_land", "has_bank_account", "is_enrolled_in_ed
                 "is_or_was_income_tax_payer", "disability_status"}
 
 
+_CONJ_CODES = {"and": "\u0001", "और": "\u0002", "आणि": "\u0003"}
+_CONJ_BACK = {v: k for k, v in _CONJ_CODES.items()}
+_CONJ_ALIAS = re.compile("|".join(sorted({re.escape(N(a)) for names in STATE_ALIASES.values() for a in names
+                                          if re.search(rf"\s({'|'.join(map(re.escape, _CONJ_CODES))})\s", N(a))}, key=len, reverse=True)))
+
+
+def _protect(m: re.Match) -> str:
+    return re.sub(rf"\s({'|'.join(map(re.escape, _CONJ_CODES))})\s", lambda c: " " + _CONJ_CODES[c.group(1)] + " ", m.group(0))
+
+
 def _segments(norm: str) -> list[str]:
-    return [s.strip() for s in SPLIT_SEGMENTS.split(norm) if s and s.strip()]
+    """Clauses for polarity checks. 'and'/'और'/'आणि' split clauses, except inside state names ('Jammu and Kashmir')."""
+    protected = _CONJ_ALIAS.sub(_protect, norm)
+    parts = [x.strip() for x in SPLIT_SEGMENTS.split(protected) if x and x.strip()]
+    return [re.sub("[\u0001\u0002\u0003]", lambda c: _CONJ_BACK[c.group(0)], x) for x in parts]
 
 
 def _is_neg(seg: str) -> bool:
@@ -264,6 +284,8 @@ def _bare_enum(norm: str, expected: str | None) -> list[Extraction]:
         for g, w in GENDER.items():
             if re.fullmatch(w, t):
                 return [Extraction("gender", g, "explicit", t)]
+        if re.fullmatch(BARE_GENDER_OTHER, t):
+            return [Extraction("gender", "other", "explicit", t)]
     if expected == "social_category":
         for cat, rxs in SOCIAL.items():
             if any(re.fullmatch(rx, t) for rx in rxs):
