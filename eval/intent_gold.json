@@ -1,0 +1,287 @@
+[
+ {
+  "text": "Am I eligible for PM Kisan?",
+  "intent": "eligibility"
+ },
+ {
+  "text": "Can I get the scholarship?",
+  "intent": "eligibility"
+ },
+ {
+  "text": "Do I qualify for Atal Pension Yojana",
+  "intent": "eligibility"
+ },
+ {
+  "text": "मैं पात्र हूँ क्या?",
+  "intent": "eligibility"
+ },
+ {
+  "text": "क्या मुझे पीएम किसान की पात्रता है",
+  "intent": "eligibility"
+ },
+ {
+  "text": "मी पात्र आहे का?",
+  "intent": "eligibility"
+ },
+ {
+  "text": "मला मिळू शकते का?",
+  "intent": "eligibility"
+ },
+ {
+  "text": "Which schemes are there for farmers?",
+  "intent": "discover"
+ },
+ {
+  "text": "Show schemes for women",
+  "intent": "discover"
+ },
+ {
+  "text": "कौन सी योजना मेरे लिए है",
+  "intent": "discover"
+ },
+ {
+  "text": "कोई योजना है किसानों के लिए",
+  "intent": "discover"
+ },
+ {
+  "text": "कोणती योजना माझ्यासाठी आहे",
+  "intent": "discover"
+ },
+ {
+  "text": "कोणत्या योजना उपलब्ध आहेत",
+  "intent": "discover"
+ },
+ {
+  "text": "What documents do I need?",
+  "intent": "documents"
+ },
+ {
+  "text": "Which papers are required for Ladki Bahin",
+  "intent": "documents"
+ },
+ {
+  "text": "मुझे कौन से दस्तावेज चाहिए?",
+  "intent": "documents"
+ },
+ {
+  "text": "कागजात क्या लगेंगे",
+  "intent": "documents"
+ },
+ {
+  "text": "मला कोणती कागदपत्रे लागतील?",
+  "intent": "documents"
+ },
+ {
+  "text": "How do I apply for Post Matric scholarship?",
+  "intent": "how_to_apply"
+ },
+ {
+  "text": "Where to apply?",
+  "intent": "how_to_apply"
+ },
+ {
+  "text": "आवेदन कैसे करें",
+  "intent": "how_to_apply"
+ },
+ {
+  "text": "आवेदन कहाँ करना है",
+  "intent": "how_to_apply"
+ },
+ {
+  "text": "अर्ज कसा करायचा",
+  "intent": "how_to_apply"
+ },
+ {
+  "text": "अर्ज कुठे करायचा",
+  "intent": "how_to_apply"
+ },
+ {
+  "text": "Give me the official website",
+  "intent": "official_link"
+ },
+ {
+  "text": "Is there a portal link?",
+  "intent": "official_link"
+ },
+ {
+  "text": "आधिकारिक वेबसाइट बताइए",
+  "intent": "official_link"
+ },
+ {
+  "text": "अधिकृत संकेतस्थळ सांगा",
+  "intent": "official_link"
+ },
+ {
+  "text": "Start over",
+  "intent": "restart"
+ },
+ {
+  "text": "Let's restart",
+  "intent": "restart"
+ },
+ {
+  "text": "फिर से शुरू करो",
+  "intent": "restart"
+ },
+ {
+  "text": "नए सिरे से शुरू करें",
+  "intent": "restart"
+ },
+ {
+  "text": "पुन्हा सुरू करा",
+  "intent": "restart"
+ },
+ {
+  "text": "Please reply in Hindi",
+  "intent": "language_switch"
+ },
+ {
+  "text": "in marathi please",
+  "intent": "language_switch"
+ },
+ {
+  "text": "Switch to English",
+  "intent": "language_switch"
+ },
+ {
+  "text": "हिंदी में बताइए",
+  "intent": "language_switch"
+ },
+ {
+  "text": "मराठीत सांगा",
+  "intent": "language_switch"
+ },
+ {
+  "text": "Sorry, my age is 35",
+  "intent": "correction"
+ },
+ {
+  "text": "Actually I meant 2 lakh",
+  "intent": "correction"
+ },
+ {
+  "text": "मेरा मतलब ३५ है",
+  "intent": "correction"
+ },
+ {
+  "text": "गलत है, मेरी उम्र ४० है",
+  "intent": "correction"
+ },
+ {
+  "text": "माझे वय चुकीचे आहे",
+  "intent": "correction"
+ },
+ {
+  "text": "Tell me about PM Kisan",
+  "intent": "scheme_info"
+ },
+ {
+  "text": "What is Atal Pension Yojana",
+  "intent": "scheme_info"
+ },
+ {
+  "text": "पीएम किसान के बारे में बताइए",
+  "intent": "scheme_info"
+ },
+ {
+  "text": "अटल पेन्शन बद्दल माहिती द्या",
+  "intent": "scheme_info"
+ },
+ {
+  "text": "help",
+  "intent": "help"
+ },
+ {
+  "text": "What can you do",
+  "intent": "help"
+ },
+ {
+  "text": "मदद चाहिए",
+  "intent": "help"
+ },
+ {
+  "text": "मदत हवी आहे",
+  "intent": "help"
+ },
+ {
+  "text": "Thank you",
+  "intent": "thanks"
+ },
+ {
+  "text": "धन्यवाद",
+  "intent": "thanks"
+ },
+ {
+  "text": "आभार",
+  "intent": "thanks"
+ },
+ {
+  "text": "Hello",
+  "intent": "greeting"
+ },
+ {
+  "text": "Namaste",
+  "intent": "greeting"
+ },
+ {
+  "text": "नमस्कार",
+  "intent": "greeting"
+ },
+ {
+  "text": "hi there",
+  "intent": "greeting"
+ },
+ {
+  "text": "30",
+  "intent": "other"
+ },
+ {
+  "text": "Maharashtra",
+  "intent": "other"
+ },
+ {
+  "text": "I am a 30 year old woman",
+  "intent": "other"
+ },
+ {
+  "text": "मेरे पास जमीन नहीं है",
+  "intent": "other"
+ },
+ {
+  "text": "माझ्याकडे शेती आहे",
+  "intent": "other"
+ },
+ {
+  "text": "2 lakh",
+  "intent": "other"
+ },
+ {
+  "text": "yes",
+  "intent": "other"
+ },
+ {
+  "text": "I want to apply for PM Kisan",
+  "intent": "how_to_apply"
+ },
+ {
+  "text": "क्या मैं आवेदन कर सकता हूँ",
+  "intent": "eligibility"
+ },
+ {
+  "text": "मी अर्ज करू शकतो का",
+  "intent": "eligibility"
+ },
+ {
+  "text": "I am a farmer, give me help finding schemes",
+  "intent": "discover"
+ },
+ {
+  "text": "My family income is 2 lakh, what schemes can I get?",
+  "intent": "eligibility",
+  "note": "can I get = eligibility; discover is also in 'all'"
+ },
+ {
+  "text": "Can I apply for the scholarship?",
+  "intent": "eligibility"
+ }
+]
