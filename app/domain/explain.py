@@ -1,8 +1,9 @@
-"""Human-readable explanations for rule results. English only for now.
+"""Human-readable explanations for rule results in English, Hindi and Marathi.
 
-Hindi and Marathi templates arrive in Phase 2 through the same table. Until then an
-unsupported language raises, so the system can never silently show English as if it were
-the user's language.
+All wording lives in the language catalogs (app/i18n/data/<lang>.json, section "explain") so a native speaker can
+review it. An unsupported language raises, so the system can never silently show English as if it were the user's
+language. Official 'other conditions' are shown in the requested language when we hold that translation; otherwise the
+English official text is shown and labelled as English (it is never dropped, and never machine-translated).
 """
 from __future__ import annotations
 
@@ -10,155 +11,117 @@ from typing import Any
 
 from app.domain.eligibility import Assessment, Rule, RuleResult, Status, Tri
 from app.domain.fields import FIELD_TYPES
+from app.domain.money import format_inr  # noqa: F401  (re-exported: other modules import it from here)
+from app.i18n.catalog import LANGS, PROTECTED_TERMS, catalog
 
-PRELIMINARY_NOTICE = {
-    "en": ("This is a preliminary check based only on what you told us and on the published rules we have "
-           "recorded. It is not an official decision and does not mean the government has approved your "
-           "application. Please confirm on the official portal before you apply."),
-}
-
-LABELS = {"en": {
-    "age_years": "Age", "state_code": "State of residence", "domicile_state_code": "State of domicile",
-    "study_state_code": "State of study", "district": "District", "residence_area": "Rural or urban area",
-    "annual_family_income": "Annual family income", "annual_individual_income": "Annual individual income",
-    "family_size": "Family size", "occupation": "Occupation", "employment_status": "Employment status",
-    "education_level": "Education level", "is_enrolled_in_education": "Currently enrolled in education",
-    "owns_agricultural_land": "Owns agricultural land", "has_bank_account": "Has a bank account",
-    "receives_other_scholarship": "Receives another scholarship", "gender": "Gender",
-    "social_category": "Social category", "disability_status": "Disability", "marital_status": "Marital status",
-    "is_or_was_income_tax_payer": "Is or has been an income-tax payer",
-}}
-
-STATUS_TEXT = {"en": {
-    Status.LIKELY_ELIGIBLE: "Likely eligible",
-    Status.LIKELY_INELIGIBLE: "Likely not eligible",
-    Status.INSUFFICIENT_INFORMATION: "More information needed",
-    Status.REQUIRES_OFFICIAL_VERIFICATION: "Needs official verification",
-}}
-
-REASON_TEXT = {"en": {
-    "record_is_draft": "Our record of this scheme has not been verified against an official source yet.",
-    "no_rules": "We have no verified eligibility rules recorded for this scheme.",
-    "rules_incomplete": "Our record may not list every official condition.",
-    "record_stale": "Our record is overdue for a re-check against the official source.",
-    "official_only_rules": "Some conditions can only be confirmed by the official authority.",
-    "scheme_status_closed": "This scheme is recorded as closed.",
-    "scheme_status_suspended": "This scheme is recorded as suspended.",
-    "scheme_status_unknown": "We could not confirm that this scheme is currently active.",
-    "deadline_passed": "The recorded application deadline has passed.",
-    "confirm_other_conditions": "This scheme has other official conditions that we cannot check from your answers; see the list below.",
-}}
+STATE_FIELDS = {"state_code", "domicile_state_code", "study_state_code"}
 
 
-def format_inr(amount: int) -> str:
-    """Indian digit grouping: 150000 -> ₹1,50,000."""
-    s = str(abs(int(amount)))
-    if len(s) > 3:
-        head, tail = s[:-3], s[-3:]
-        groups = []
-        while len(head) > 2:
-            groups.insert(0, head[-2:])
-            head = head[:-2]
-        if head:
-            groups.insert(0, head)
-        s = ",".join(groups + [tail])
-    return ("-" if amount < 0 else "") + "₹" + s
+class _Lazy(dict):
+    """dict[lang] -> catalog-derived table, built on first use so importing this module stays cheap."""
+
+    def __init__(self, build):
+        super().__init__()
+        self._build = build
+
+    def __missing__(self, lang: str):
+        if lang not in LANGS:
+            raise KeyError(lang)
+        self[lang] = self._build(lang)
+        return self[lang]
+
+    def __contains__(self, lang) -> bool:
+        return lang in LANGS
 
 
-def _show(field: str, value: Any) -> str:
+LABELS = _Lazy(lambda l: catalog(l)["labels"])
+STATUS_TEXT = _Lazy(lambda l: {Status(k): v for k, v in catalog(l)["explain"]["status"].items()})
+REASON_TEXT = _Lazy(lambda l: catalog(l)["explain"]["reasons"])
+PRELIMINARY_NOTICE = _Lazy(lambda l: catalog(l)["explain"]["notice"])
+
+
+def _check(lang: str) -> None:
+    if lang not in LANGS:
+        raise ValueError(f"explanations are not available in '{lang}'; refusing to fall back to another language silently")
+
+
+def _show(field: str, value: Any, lang: str) -> str:
+    c = catalog(lang)
     if value is None:
-        return "not provided"
+        return c["explain"]["not_provided"]
     if isinstance(value, bool):
-        return "yes" if value else "no"
+        return (c["yes"] if value else c["no"]).lower()
+    if field in STATE_FIELDS:
+        return c["states"].get(str(value), str(value))
     if FIELD_TYPES.get(field) == "money_inr" and isinstance(value, int):
         return format_inr(value)
     if isinstance(value, str):
-        return value.replace("_", " ")
+        text = c["values"].get(field, {}).get(value, value.replace("_", " "))
+        return text if lang != "en" or text in PROTECTED_TERMS else text.lower()
     return str(value)
+
+
+def _fill(template: str, rule: Rule, lang: str) -> str:
+    f, v = rule.field, rule.value
+    if rule.op in ("in", "not_in"):
+        return template.format(vs=", ".join(_show(f, x, lang) for x in v))
+    if rule.op == "between":
+        return template.format(a=_show(f, v[0], lang), b=_show(f, v[1], lang))
+    return template.format(v=_show(f, v, lang)) if "{v}" in template else template
 
 
 def describe_requirement(rule: Rule, lang: str = "en") -> str:
     _check(lang)
-    f, v = rule.field, rule.value
-    s = lambda x: _show(f, x)  # noqa: E731
-    return {
-        "eq": lambda: f"must be {s(v)}", "neq": lambda: f"must not be {s(v)}",
-        "in": lambda: "must be one of: " + ", ".join(s(x) for x in v),
-        "not_in": lambda: "must not be any of: " + ", ".join(s(x) for x in v),
-        "gte": lambda: f"at least {s(v)}", "lte": lambda: f"at most {s(v)}",
-        "gt": lambda: f"more than {s(v)}", "lt": lambda: f"less than {s(v)}",
-        "between": lambda: f"between {s(v[0])} and {s(v[1])} (both included)",
-        "is_true": lambda: "must be yes", "is_false": lambda: "must be no",
-    }[rule.op]()
+    return _fill(catalog(lang)["explain"]["req"][rule.op], rule, lang)
 
 
 def describe_exclusion(rule: Rule, lang: str = "en") -> str:
     """The excluding condition, phrased so it reads correctly after 'excludes people whose answer ...'."""
     _check(lang)
-    f, v = rule.field, rule.value
-    s = lambda x: _show(f, x)  # noqa: E731
-    return {
-        "eq": lambda: f"is {s(v)}", "neq": lambda: f"is not {s(v)}",
-        "in": lambda: "is one of: " + ", ".join(s(x) for x in v),
-        "not_in": lambda: "is none of: " + ", ".join(s(x) for x in v),
-        "gte": lambda: f"is at least {s(v)}", "lte": lambda: f"is at most {s(v)}",
-        "gt": lambda: f"is more than {s(v)}", "lt": lambda: f"is less than {s(v)}",
-        "between": lambda: f"is between {s(v[0])} and {s(v[1])} (both included)",
-        "is_true": lambda: "is yes", "is_false": lambda: "is no",
-    }[rule.op]()
-
-
-def _check(lang: str) -> None:
-    if lang not in LABELS:
-        raise ValueError(f"explanations are not available in '{lang}' yet; refusing to fall back to English silently")
+    return _fill(catalog(lang)["explain"]["excl"][rule.op], rule, lang)
 
 
 def explain_result(r: RuleResult, lang: str = "en") -> str:
     _check(lang)
+    e = catalog(lang)["explain"]
+    t = e["result"]
     label = LABELS[lang].get(r.rule.field, r.rule.field)
-    given = _show(r.rule.field, r.user_value)
+    given = _show(r.rule.field, r.user_value, lang)
     code = r.reason_code
-    as_of = f" on {r.params['as_of']}" if r.params.get("as_of") else ""
+    as_of = e["as_of"].format(date=r.params["as_of"]) if r.params.get("as_of") else ""
 
     if r.purpose == "exclusion":
-        cond = describe_exclusion(r.rule, lang)
-        rule_text = f"The scheme excludes people whose answer {cond}."
+        rule = t["excl_rule"].format(cond=describe_exclusion(r.rule, lang))
+        kw = dict(label=label, as_of=as_of, given=given, rule=rule)
         if r.result is Tri.PASS:
-            return f"{label}{as_of}: {given}. {rule_text} The exclusion applies to you."
+            return t["excl_applies"].format(**kw)
         if r.result is Tri.FAIL:
-            return f"{label}{as_of}: {given}. {rule_text} The exclusion does not apply to you."
-        if code == "missing_value":
-            return (f"{label}: not provided. {rule_text} We need this to decide; "
-                    "we have not assumed the exclusion does not apply.")
-        if code == "invalid_value":
-            return f"{label}: the answer given ({given}) could not be used. {rule_text}"
-        if code == "official_only":
-            return f"{label}: {rule_text} This cannot be checked from your answers; confirm it with the official authority."
-        if code == "rule_not_verified":
-            return f"{label}: {rule_text} This rule has not been verified against an official source yet."
-        return f"{label}: {code}"
+            return t["excl_not_applies"].format(**kw)
+        key = {"missing_value": "excl_missing", "invalid_value": "excl_invalid", "official_only": "excl_official_only",
+               "rule_not_verified": "excl_not_verified"}.get(code)
+        return t[key].format(**kw) if key else f"{label}: {code}"
 
-    req = describe_requirement(r.rule, lang)
-    if code == "meets_requirement":
-        return f"{label}{as_of}: you said {given}; requirement: {req}. This is met."
-    if code == "fails_requirement":
-        return f"{label}{as_of}: you said {given}; requirement: {req}. This is not met."
-    if code == "missing_value":
-        return f"{label}: not provided; requirement: {req}. We need this to decide; we have not assumed it is met."
-    if code == "invalid_value":
-        return f"{label}: the answer given ({given}) could not be used; requirement: {req}."
+    kw = dict(label=label, as_of=as_of, given=given, req=describe_requirement(r.rule, lang))
     if code == "age_depends_on_birthday":
-        ages = " or ".join(str(a) for a in r.params.get("possible_ages", []))
-        return (f"Age{as_of}: you could be {ages} on that date depending on your birthday; requirement: {req}. "
-                "Your date of birth would settle it.")
-    if code == "official_only":
-        return f"{label}: requirement: {req}. This cannot be checked from your answers; confirm it with the official authority."
-    if code == "rule_not_verified":
-        return f"{label}: requirement: {req}. This rule has not been verified against an official source yet."
-    return f"{label}: {code}"
+        kw["ages"] = e["or"].join(str(a) for a in r.params.get("possible_ages", []))
+    key = {"meets_requirement": "meets", "fails_requirement": "fails", "missing_value": "missing", "invalid_value": "invalid",
+           "age_depends_on_birthday": "age_depends", "official_only": "official_only",
+           "rule_not_verified": "not_verified"}.get(code)
+    return t[key].format(**kw) if key else f"{label}: {code}"
 
 
-def explain_assessment(a: Assessment, lang: str = "en") -> dict:
+def confirm_list(a: Assessment, lang: str) -> list[dict[str, Any]]:
+    """Official conditions we cannot check, in the requested language when we hold it, else in labelled English."""
+    out = []
+    for c in a.other_conditions:
+        used = lang if lang in c.texts else "en" if "en" in c.texts else None
+        if used:
+            out.append({"kind": c.kind, "text": c.texts[used], "language_used": used,
+                        "source_url": c.source_url, "locator": c.locator})
+    return out
+
+
+def explain_assessment(a: Assessment, lang: str = "en") -> dict[str, Any]:
     """Structured text for display: headline, why, per-rule lines, warnings and the mandatory notice."""
     _check(lang)
     return {
@@ -167,6 +130,6 @@ def explain_assessment(a: Assessment, lang: str = "en") -> dict:
         "warnings": [REASON_TEXT[lang].get(c, c) for c in a.warnings],
         "rules": [explain_result(r, lang) for r in a.results],
         "missing": [LABELS[lang].get(m.field, m.field) for m in a.missing_fields],
-        "confirm": [c.texts[lang] for c in a.other_conditions if lang in c.texts],
+        "confirm": confirm_list(a, lang),
         "notice": PRELIMINARY_NOTICE[lang],
     }

@@ -63,9 +63,9 @@ def test_assessment_always_carries_the_preliminary_notice():
 def test_unsupported_language_raises_instead_of_falling_back():
     a = run(Group("AND", (rule("age_years", "gte", 18),)), {"age_years": 20})
     with pytest.raises(ValueError):
-        explain_assessment(a, "hi")
+        explain_assessment(a, "fr")
     with pytest.raises(ValueError):
-        explain_result(a.results[0], "mr")
+        explain_result(a.results[0], "bn")
 
 
 def test_confirm_list_is_in_the_explanation_in_the_requested_language_only():
@@ -75,7 +75,8 @@ def test_confirm_list_is_in_the_explanation_in_the_requested_language_only():
                     other_conditions=(OtherCondition("exclusion", {"en": "No family member is an income-tax payer."}),
                                       OtherCondition("requirement", {"mr": "x"})))
     out = explain_assessment(evaluate_scheme(s, {"age_years": 20}, today=TODAY))
-    assert out["confirm"] == ["No family member is an income-tax payer."]
+    assert [c["text"] for c in out["confirm"]] == ["No family member is an income-tax payer."]
+    assert out["confirm"][0]["language_used"] == "en"
     assert any("other official conditions" in w for w in out["warnings"])
 
 
@@ -95,3 +96,39 @@ def test_exclusion_phrases(op, value, expected):
     from app.domain.explain import describe_exclusion
     field = "occupation" if isinstance(value, str) else ("receives_other_scholarship" if value is None else "age_years")
     assert describe_exclusion(rule(field, op, value)) == expected
+
+
+def test_official_condition_falls_back_to_labelled_english_never_dropped():
+    from app.domain.eligibility import OtherCondition
+    s = SchemeRules("s", Group("AND", (rule("age_years", "gte", 18),)), None, True, "active", "source_verified",
+                    next_review_due=date(2027, 4, 1),
+                    other_conditions=(OtherCondition("exclusion", {"en": "English only text"}),
+                                      OtherCondition("requirement", {"en": "Both", "mr": "दोन्ही"})))
+    a = evaluate_scheme(s, {"age_years": 20}, today=TODAY)
+    hi = explain_assessment(a, "hi")["confirm"]
+    mr = explain_assessment(a, "mr")["confirm"]
+    assert [(c["text"], c["language_used"]) for c in hi] == [("English only text", "en"), ("Both", "en")]
+    assert [(c["text"], c["language_used"]) for c in mr] == [("English only text", "en"), ("दोन्ही", "mr")]
+
+
+@pytest.mark.parametrize("lang", ["hi", "mr"])
+def test_hindi_and_marathi_explanations_contain_no_english(lang):
+    import re
+    from app.domain.explain import describe_exclusion, describe_requirement
+    ex = Group("NOT_ANY", (rule("receives_other_scholarship", "is_true"),))
+    reqs = Group("AND", (rule("age_years", "between", [18, 40]), rule("annual_family_income", "lte", 250000),
+                         rule("state_code", "in", ["MH", "GJ"]), rule("social_category", "eq", "sc"),
+                         rule("owns_agricultural_land", "is_true")))
+    for profile in ({}, {"age_years": 30, "annual_family_income": 900000, "state_code": "MH", "social_category": "obc",
+                         "owns_agricultural_land": False, "receives_other_scholarship": True}):
+        out = explain_assessment(run(reqs, profile, ex), lang)
+        text = " ".join([out["headline"], out["notice"], *out["reasons"], *out["warnings"], *out["rules"], *out["missing"]])
+        latin = re.sub(r"\b(SC|ST|OBC|EWS)\b", "", text)
+        assert not re.search("[A-Za-z]", latin), latin
+        assert "{" not in text
+
+
+def test_state_and_value_names_are_shown_not_codes_in_english_too():
+    a = run(Group("AND", (rule("state_code", "eq", "MH"),)), {"state_code": "MH"})
+    line = explain_assessment(a)["rules"][0]
+    assert "Maharashtra" in line and "MH" not in line

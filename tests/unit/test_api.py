@@ -1,3 +1,4 @@
+import json
 import logging
 from datetime import date
 from pathlib import Path
@@ -186,10 +187,17 @@ def test_malformed_bodies_give_422_without_echoing_input(client, payload):
     assert str(SECRET_INCOME) not in r.text
 
 
-def test_hindi_and_marathi_explanations_are_refused_honestly_not_faked(client):
-    for lang in ("hi", "mr"):
-        e = err(client.post("/api/v1/evaluate", json={"profile": {}, "lang": lang}), 400, "language_not_available")
-        assert e["details"]["available"] == ["en"]
+def test_hindi_and_marathi_explanations_are_real_and_unknown_languages_refused(client):
+    import re
+    for lang, headline in (("hi", "अधिक जानकारी चाहिए"), ("mr", "अधिक माहिती हवी")):
+        r = client.post("/api/v1/schemes/atal-pension-yojana/evaluate", json={"profile": {}, "lang": lang})
+        assert r.status_code == 200
+        d = r.json()
+        assert d["headline"] == headline
+        assert not re.search("[A-Za-z]", d["notice"]) and not re.search(r"\{\w+\}", json.dumps(d, ensure_ascii=False))
+        for c in d["confirm_officially"]:
+            assert c["language_used"] in ("en", lang)          # official text is never dropped, and says which language it is
+    assert client.post("/api/v1/evaluate", json={"profile": {}, "lang": "hi"}).status_code == 200
     err(client.post("/api/v1/evaluate", json={"profile": {}, "lang": "fr"}), 400, "unsupported_language")
 
 
@@ -226,3 +234,24 @@ def test_docs_describe_the_real_error_shape(client):
     resp = spec["paths"]["/api/v1/schemes/{scheme_id}"]["get"]["responses"]
     assert resp["404"]["content"]["application/json"]["schema"]["$ref"].endswith("ErrorEnvelope")
     assert "422" in resp and resp["422"]["description"].startswith("Request could not be used")
+
+
+def _tree_texts(node):
+    if not node:
+        return []
+    if node["type"] == "rule":
+        return [node["label"], node["requirement"]]
+    return [t for i in node["items"] for t in _tree_texts(i)]
+
+
+def test_every_real_scheme_rule_reads_in_hindi_and_marathi_without_english(client):
+    """A future scheme that uses a value we have no Hindi/Marathi name for fails here, which is the point."""
+    import re
+    ids = [s["scheme_id"] for s in client.get("/api/v1/schemes").json()["schemes"]]
+    assert len(ids) >= 5
+    for lang in ("hi", "mr"):
+        for sid in ids:
+            d = client.get(f"/api/v1/schemes/{sid}", params={"lang": lang}).json()
+            texts = _tree_texts(d["eligibility"]) + [t for e in d["exclusions"] for t in _tree_texts(e)]
+            joined = re.sub(r"\b(SC|ST|OBC|EWS)\b", "", " ".join(texts))
+            assert not re.search("[A-Za-z]", joined), (sid, lang, joined)

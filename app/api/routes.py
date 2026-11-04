@@ -15,7 +15,8 @@ from app.api.errors import ApiError
 from app.config import get_settings
 from app.database import models as m
 from app.domain.eligibility import Assessment, SENSITIVE_FIELDS, Status
-from app.domain.explain import LABELS, PRELIMINARY_NOTICE, REASON_TEXT, STATUS_TEXT, explain_result
+from app.domain.explain import (LABELS, PRELIMINARY_NOTICE, REASON_TEXT, STATUS_TEXT, confirm_list,
+                                explain_result)
 from app.domain.fields import PROFILE_FIELDS, STATE_NAMES
 from app.services.catalog_service import SUPPORTED_LANGS, get_scheme_detail, list_schemes
 from app.services.eligibility_service import SchemeNotFound, evaluate_from_db
@@ -39,7 +40,7 @@ class ErrorEnvelope(BaseModel):
 
 # so the interactive docs show the error format the API really returns
 _ERRORS = {code: {"model": ErrorEnvelope, "description": desc} for code, desc in
-           {400: "Unsupported language or unavailable explanation language", 404: "Unknown scheme or route",
+           {400: "Unsupported language", 404: "Unknown scheme or route",
             422: "Request could not be used (values are never echoed back)", 500: "Unexpected error (generic message)",
             503: "Scheme database not ready"}.items()}
 
@@ -72,15 +73,6 @@ def check_lang(lang: str) -> str:
     if lang not in SUPPORTED_LANGS:
         raise ApiError(400, "unsupported_language", "Supported languages are en, hi and mr.",
                        {"supported": list(SUPPORTED_LANGS)})
-    return lang
-
-
-def explanation_lang(lang: str) -> str:
-    """Explanations exist in English only for now; never pretend otherwise."""
-    if lang not in LABELS:
-        raise ApiError(400, "language_not_available",
-                       f"Eligibility explanations are not available in '{lang}' yet. Use lang=en.",
-                       {"available": sorted(LABELS)})
     return lang
 
 
@@ -170,8 +162,7 @@ def serialise(a: Assessment, lang: str, record: dict[str, Any] | None = None) ->
                    "locator": r.rule.locator} for r in a.results],
         "missing": [{"field": x.field, "label": LABELS[lang].get(x.field, x.field), "reason": x.reason,
                      "sensitive": x.sensitive} for x in a.missing_fields],
-        "confirm_officially": [{"kind": c.kind, "text": c.texts[lang], "source_url": c.source_url,
-                                "locator": c.locator} for c in a.other_conditions if lang in c.texts],
+        "confirm_officially": confirm_list(a, lang),
         "notice": PRELIMINARY_NOTICE[lang], "engine_version": a.engine_version, "rules_hash": a.rules_hash,
         "evaluated_on": a.evaluated_on.isoformat(), "record": record,
     }
@@ -187,7 +178,7 @@ def _record(session: Session, scheme_id: str, today: date) -> dict[str, Any]:
 @router.post("/api/v1/schemes/{scheme_id}/evaluate")
 def evaluate_one(scheme_id: str, body: EvaluateRequest, session: Session = Depends(get_session),
                  today: date = Depends(get_today)) -> dict[str, Any]:
-    lang = explanation_lang(check_lang(body.lang))
+    lang = check_lang(body.lang)
     _check_profile(body.profile)
     try:
         a = evaluate_from_db(session, scheme_id, body.profile, today=today)
@@ -201,7 +192,7 @@ def evaluate_all(body: EvaluateRequest, session: Session = Depends(get_session),
                  today: date = Depends(get_today)) -> dict[str, Any]:
     """Check every scheme against one profile. Order: likely eligible, more information needed, needs verification,
     likely not eligible; within a group by scheme id, so the order is stable and explainable."""
-    lang = explanation_lang(check_lang(body.lang))
+    lang = check_lang(body.lang)
     _check_profile(body.profile)
     names = {t.scheme_id: t.official_name for t in session.scalars(
         select(m.SchemeTranslation).where(m.SchemeTranslation.lang == "en"))}

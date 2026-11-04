@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.database import models as m
 from app.domain.eligibility import Group, Rule
+from app.i18n.catalog import catalog
 from app.domain.explain import LABELS, PRELIMINARY_NOTICE, describe_exclusion, describe_requirement
 from app.services.eligibility_service import SchemeNotFound, load_scheme_rules
 
@@ -80,7 +81,7 @@ def _source_info(session: Session, doc_id: int, cache: dict[int, dict]) -> dict:
 def _tree(group: Group | Rule, lang: str, exclusion: bool = False) -> dict:
     if isinstance(group, Rule):
         return {"type": "rule", "field": group.field, "label": LABELS[lang].get(group.field, group.field),
-                "requirement": (f"excluded if the answer {describe_exclusion(group, lang)}" if exclusion
+                "requirement": (catalog(lang)["explain"]["excluded_if"].format(cond=describe_exclusion(group, lang)) if exclusion
                                 else describe_requirement(group, lang)), "as_of": group.as_of.isoformat() if group.as_of else None,
                 "checkable_from_profile": group.evaluability == "auto" and group.verified,
                 "source_url": group.source_url, "locator": group.locator}
@@ -133,8 +134,8 @@ def get_scheme_detail(session: Session, scheme_id: str, *, lang: str = "en", tod
                    "next_review_due": s.next_review_due.isoformat() if s.next_review_due else None,
                    "application_deadline": s.application_deadline.isoformat() if s.application_deadline else None,
                    "is_stale": bool(s.next_review_due and today > s.next_review_due)},
-        "eligibility": _tree(rules.eligibility, "en") if rules.eligibility else None,
-        "exclusions": [_tree(r, "en", exclusion=True) for r in (rules.exclusions.items if rules.exclusions else ())],
+        "eligibility": _tree(rules.eligibility, lang) if rules.eligibility else None,
+        "exclusions": [_tree(r, lang, exclusion=True) for r in (rules.exclusions.items if rules.exclusions else ())],
         "other_conditions": conditions, "documents": documents, "steps": steps,
         "links": [{"url": l.url, "link_type": l.link_type, "domain_class": l.domain_class,
                    "verification_status": l.verification_status, "badge": LINK_BADGE.get(l.verification_status, ""),

@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any
 
 from app.conversation.state import Action
-from app.domain.explain import format_inr
+from app.domain.money import format_inr
 from app.domain.fields import FIELD_TYPES
 from app.i18n.catalog import catalog, message
 
