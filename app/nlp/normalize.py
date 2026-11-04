@@ -57,6 +57,7 @@ _CURRENCY = ("₹", "rs.", "rs", "inr", "रु.", "रु", "रुपये", 
 # Hindi/Marathi words are made of letters AND combining marks, so \b is not reliable; use explicit edges.
 _L = "A-Za-z0-9ऀ-ॿ"
 _START, _END = f"(?<![{_L}])", f"(?![{_L}])"
+START, END = _START, _END  # for other modules that build word-edge patterns
 
 _GROUPED = r"\d{1,3}(?:,\d{2})*,\d{3}(?:\.\d+)?|\d{1,3}(?:,\d{3})+(?:\.\d+)?"  # 2,50,000 and 250,000
 _PLAIN = r"\d+(?:\.\d+)?"

@@ -43,7 +43,7 @@ Goal: a working skeleton on solid ground, with the riskiest data-model decision 
 
 - [ ] i18n catalog (en/hi/mr): rule-explanation templates, UI text, protected-terms glossary
 - [x] **2.1 Normalisation** (`app/nlp/normalize.py`): Devanagari digits, lakh/crore/thousand, Indian grouping, nukta/chandrabindu variants, hi/mr number words and डेढ़/ढाई/सवा idioms; ranges and ambiguous input yield nothing. 45 tests. *Word lists need a native-speaker review.*
-- [ ] Entity extractor (rules + trilingual lexicons) with provenance (explicit vs inferred)
+- [x] **2.2 Entity extractor** (`app/nlp/extract.py`, gold set `eval/extraction_gold.json`, 67 cases): age, gender, state/domicile, family vs individual income, land, bank account, income-tax payer, social category, occupation, enrolment, rural/urban in en/hi/mr. Every value has provenance (explicit/inferred) and evidence; negation, third-person, past tense, ranges, conflicts handled; unclear income becomes a clarification; bare answers accepted only for the question just asked. Regex blow-up found by testing and fixed; input capped at 2000 chars. *Known gaps: romanised Hindi/Marathi ("main 30 saal ki hoon") extracts nothing; pending language detection (2.3).*
 - [ ] Language detection (script + marker words, romanised Hindi/Marathi lexicon); gold-set accuracy reported
 - [ ] Intent classifier (rule-based first)
 - [ ] Conversation state machine: slots, corrections, restart, language switch, next-question selection

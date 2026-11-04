@@ -1,0 +1,451 @@
+[
+ {
+  "id": "en-basic",
+  "text": "I am a 30 year old woman and I live in Maharashtra",
+  "explicit": {
+   "age_years": 30,
+   "gender": "female",
+   "state_code": "MH"
+  }
+ },
+ {
+  "id": "en-income-family",
+  "text": "My family income is Rs. 2,50,000 per year",
+  "explicit": {
+   "annual_family_income": 250000
+  }
+ },
+ {
+  "id": "en-income-lakh",
+  "text": "our household income is 2.5 lakh",
+  "explicit": {
+   "annual_family_income": 250000
+  }
+ },
+ {
+  "id": "en-income-monthly",
+  "text": "my salary is 25000 per month",
+  "inferred": {
+   "annual_individual_income": 300000
+  }
+ },
+ {
+  "id": "en-income-whose",
+  "text": "income is 3 lakh",
+  "clarify": [
+   "annual_family_income"
+  ]
+ },
+ {
+  "id": "en-income-range",
+  "text": "family income is between 2-3 lakh",
+  "explicit": {}
+ },
+ {
+  "id": "en-age-aged",
+  "text": "aged 45, male",
+  "explicit": {
+   "age_years": 45
+  }
+ },
+ {
+  "id": "en-age-hyphen",
+  "text": "I am a 19-year-old student",
+  "explicit": {
+   "age_years": 19,
+   "occupation": "student"
+  },
+  "inferred": {
+   "is_enrolled_in_education": true
+  }
+ },
+ {
+  "id": "en-farming-years-not-age",
+  "text": "I have been farming for 5 years",
+  "explicit": {
+   "occupation": "farmer"
+  }
+ },
+ {
+  "id": "en-third-person-occupation",
+  "text": "my mother is a farmer",
+  "explicit": {}
+ },
+ {
+  "id": "en-third-person-gender",
+  "text": "I am looking for schemes for a woman",
+  "explicit": {}
+ },
+ {
+  "id": "en-land-yes",
+  "text": "I own 2 acres of agricultural land",
+  "explicit": {
+   "owns_agricultural_land": true
+  }
+ },
+ {
+  "id": "en-land-no",
+  "text": "I do not own any land",
+  "explicit": {
+   "owns_agricultural_land": false
+  }
+ },
+ {
+  "id": "en-mixed-polarity",
+  "text": "I own 2 acres of land but I have no bank account",
+  "explicit": {
+   "owns_agricultural_land": true,
+   "has_bank_account": false
+  }
+ },
+ {
+  "id": "en-bank-yes",
+  "text": "I have a savings account in SBI",
+  "explicit": {
+   "has_bank_account": true
+  }
+ },
+ {
+  "id": "en-tax-no",
+  "text": "I don't pay income tax",
+  "explicit": {
+   "is_or_was_income_tax_payer": false
+  }
+ },
+ {
+  "id": "en-tax-yes",
+  "text": "I pay income tax",
+  "explicit": {
+   "is_or_was_income_tax_payer": true
+  }
+ },
+ {
+  "id": "en-tax-past-not-assumed",
+  "text": "I paid income tax last year",
+  "explicit": {}
+ },
+ {
+  "id": "en-sc",
+  "text": "I belong to SC category",
+  "explicit": {
+   "social_category": "sc"
+  }
+ },
+ {
+  "id": "en-obc-words",
+  "text": "I am from other backward class category",
+  "explicit": {
+   "social_category": "obc"
+  }
+ },
+ {
+  "id": "en-not-sc",
+  "text": "I do not belong to SC category",
+  "explicit": {}
+ },
+ {
+  "id": "en-sc-not-a-category",
+  "text": "I want the SC verdict about my scholarship",
+  "explicit": {}
+ },
+ {
+  "id": "en-student-enrolled",
+  "text": "I am a student",
+  "explicit": {
+   "occupation": "student"
+  },
+  "inferred": {
+   "is_enrolled_in_education": true
+  }
+ },
+ {
+  "id": "en-studying",
+  "text": "I am studying engineering",
+  "explicit": {
+   "is_enrolled_in_education": true
+  }
+ },
+ {
+  "id": "en-domicile",
+  "text": "I have a Maharashtra domicile",
+  "explicit": {
+   "domicile_state_code": "MH"
+  }
+ },
+ {
+  "id": "en-from-is-only-inferred",
+  "text": "I am from Bihar",
+  "explicit": {},
+  "inferred": {
+   "state_code": "BR"
+  }
+ },
+ {
+  "id": "en-city-live",
+  "text": "I live in Pune",
+  "explicit": {},
+  "inferred": {
+   "state_code": "MH"
+  }
+ },
+ {
+  "id": "en-rural",
+  "text": "I live in a village",
+  "explicit": {
+   "residence_area": "rural"
+  }
+ },
+ {
+  "id": "en-conflict-age",
+  "text": "I am 30 years old. Actually my age is 35",
+  "conflicts": [
+   "age_years"
+  ],
+  "explicit": {}
+ },
+ {
+  "id": "en-same-value-twice",
+  "text": "I am 30. My age is 30",
+  "explicit": {
+   "age_years": 30
+  }
+ },
+ {
+  "id": "en-implausible-age",
+  "text": "I am 300",
+  "explicit": {}
+ },
+ {
+  "id": "hi-age-state",
+  "text": "मेरी उम्र ३५ साल है, मैं महाराष्ट्र में रहती हूँ",
+  "explicit": {
+   "age_years": 35,
+   "state_code": "MH"
+  }
+ },
+ {
+  "id": "hi-gender",
+  "text": "मैं एक महिला हूँ",
+  "explicit": {
+   "gender": "female"
+  }
+ },
+ {
+  "id": "hi-gender-male",
+  "text": "मैं पुरुष हूँ",
+  "explicit": {
+   "gender": "male"
+  }
+ },
+ {
+  "id": "hi-land-no",
+  "text": "मेरे पास जमीन नहीं है",
+  "explicit": {
+   "owns_agricultural_land": false
+  }
+ },
+ {
+  "id": "hi-land-yes",
+  "text": "मेरे पास २ एकड़ जमीन है",
+  "explicit": {
+   "owns_agricultural_land": true
+  }
+ },
+ {
+  "id": "hi-income-family",
+  "text": "मेरे परिवार की सालाना आय २ लाख रुपये है",
+  "explicit": {
+   "annual_family_income": 200000
+  }
+ },
+ {
+  "id": "hi-income-half",
+  "text": "परिवार की आय डेढ़ लाख है",
+  "explicit": {
+   "annual_family_income": 150000
+  }
+ },
+ {
+  "id": "hi-category",
+  "text": "मैं अनुसूचित जाति वर्ग से हूँ",
+  "explicit": {
+   "social_category": "sc"
+  }
+ },
+ {
+  "id": "hi-student",
+  "text": "मैं विद्यार्थी हूँ",
+  "explicit": {
+   "occupation": "student"
+  },
+  "inferred": {
+   "is_enrolled_in_education": true
+  }
+ },
+ {
+  "id": "hi-bank-no",
+  "text": "मेरा बैंक खाता नहीं है",
+  "explicit": {
+   "has_bank_account": false
+  }
+ },
+ {
+  "id": "mr-age-income",
+  "text": "मी ३० वर्षांची आहे, माझे उत्पन्न दोन लाख",
+  "explicit": {
+   "age_years": 30,
+   "annual_individual_income": 200000
+  }
+ },
+ {
+  "id": "mr-income-family",
+  "text": "आमच्या कुटुंबाचे उत्पन्न अडीच लाख आहे",
+  "explicit": {
+   "annual_family_income": 250000
+  }
+ },
+ {
+  "id": "mr-farmer-land",
+  "text": "मी शेतकरी आहे आणि माझ्याकडे शेती आहे",
+  "explicit": {
+   "occupation": "farmer",
+   "owns_agricultural_land": true
+  }
+ },
+ {
+  "id": "mr-state",
+  "text": "मी महाराष्ट्रात राहते",
+  "explicit": {
+   "state_code": "MH"
+  }
+ },
+ {
+  "id": "mr-bank-yes",
+  "text": "माझे बँक खाते आहे",
+  "explicit": {
+   "has_bank_account": true
+  }
+ },
+ {
+  "id": "mr-category-st",
+  "text": "मी अनुसूचित जमाती प्रवर्गातील आहे",
+  "explicit": {
+   "social_category": "st"
+  }
+ },
+ {
+  "id": "mix-hinglish-devanagari",
+  "text": "I am 28, मैं महिला हूँ and मेरा income 2 lakh है",
+  "explicit": {
+   "age_years": 28,
+   "gender": "female",
+   "annual_individual_income": 200000
+  }
+ },
+ {
+  "id": "known-gap-romanised-hindi",
+  "text": "main 30 saal ki mahila hoon",
+  "explicit": {}
+ },
+ {
+  "id": "ans-age",
+  "text": "30",
+  "expected_field": "age_years",
+  "explicit": {
+   "age_years": 30
+  }
+ },
+ {
+  "id": "ans-age-devanagari",
+  "text": "३२",
+  "expected_field": "age_years",
+  "explicit": {
+   "age_years": 32
+  }
+ },
+ {
+  "id": "ans-state",
+  "text": "Maharashtra",
+  "expected_field": "state_code",
+  "explicit": {
+   "state_code": "MH"
+  }
+ },
+ {
+  "id": "ans-state-mr",
+  "text": "महाराष्ट्र",
+  "expected_field": "state_code",
+  "explicit": {
+   "state_code": "MH"
+  }
+ },
+ {
+  "id": "ans-income",
+  "text": "2 lakh",
+  "expected_field": "annual_family_income",
+  "explicit": {
+   "annual_family_income": 200000
+  }
+ },
+ {
+  "id": "ans-no",
+  "text": "No",
+  "expected_field": "owns_agricultural_land",
+  "explicit": {
+   "owns_agricultural_land": false
+  }
+ },
+ {
+  "id": "ans-yes-hi",
+  "text": "हाँ",
+  "expected_field": "has_bank_account",
+  "explicit": {
+   "has_bank_account": true
+  }
+ },
+ {
+  "id": "ans-no-mr",
+  "text": "नाही",
+  "expected_field": "owns_agricultural_land",
+  "explicit": {
+   "owns_agricultural_land": false
+  }
+ },
+ {
+  "id": "ans-bare-no-without-question",
+  "text": "no",
+  "explicit": {}
+ },
+ {
+  "id": "ans-bare-number-without-question",
+  "text": "30",
+  "explicit": {}
+ },
+ {
+  "id": "mr-city-live",
+  "text": "मी पुण्यात राहते",
+  "explicit": {},
+  "inferred": {
+   "state_code": "MH"
+  }
+ },
+ {
+  "id": "mr-state-mumbai-style",
+  "text": "आम्ही गुजरातमध्ये राहतो",
+  "explicit": {
+   "state_code": "GJ"
+  }
+ },
+ {
+  "id": "hi-state-men",
+  "text": "मैं बिहार में रहता हूँ",
+  "explicit": {
+   "state_code": "BR"
+  }
+ },
+ {
+  "id": "hi-asam-not-asaman",
+  "text": "यह असमान व्यवस्था है",
+  "explicit": {}
+ }
+]
