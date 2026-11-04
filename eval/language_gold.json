@@ -1,0 +1,221 @@
+[
+ {
+  "text": "I am a 30 year old woman from Pune",
+  "language": "en"
+ },
+ {
+  "text": "What documents do I need for PM Kisan?",
+  "language": "en"
+ },
+ {
+  "text": "Am I eligible for the scholarship?",
+  "language": "en"
+ },
+ {
+  "text": "My family income is 2.5 lakh",
+  "language": "en"
+ },
+ {
+  "text": "Tell me about schemes for farmers",
+  "language": "en"
+ },
+ {
+  "text": "I live in Maharashtra and I do not own land",
+  "language": "en"
+ },
+ {
+  "text": "Which schemes can I apply for",
+  "language": "en"
+ },
+ {
+  "text": "How do I apply online",
+  "language": "en"
+ },
+ {
+  "text": "Please check my eligibility",
+  "language": "en"
+ },
+ {
+  "text": "I have a bank account and I am a student",
+  "language": "en"
+ },
+ {
+  "text": "मैं महाराष्ट्र में रहती हूँ",
+  "language": "hi"
+ },
+ {
+  "text": "मेरे पास जमीन नहीं है",
+  "language": "hi"
+ },
+ {
+  "text": "मुझे कौन से दस्तावेज चाहिए?",
+  "language": "hi"
+ },
+ {
+  "text": "मेरी उम्र ३५ साल है",
+  "language": "hi"
+ },
+ {
+  "text": "क्या मैं पात्र हूँ?",
+  "language": "hi"
+ },
+ {
+  "text": "मेरे परिवार की आय २ लाख है",
+  "language": "hi"
+ },
+ {
+  "text": "मैं किसान हूँ और मेरे पास बैंक खाता है",
+  "language": "hi"
+ },
+ {
+  "text": "आवेदन कैसे करें और कहाँ करें",
+  "language": "hi"
+ },
+ {
+  "text": "मुझे कौन सी योजना मिलेगी",
+  "language": "hi"
+ },
+ {
+  "text": "हमारे परिवार में पाँच लोग हैं",
+  "language": "hi"
+ },
+ {
+  "text": "नहीं, मेरे पास राशन कार्ड नहीं है",
+  "language": "hi"
+ },
+ {
+  "text": "मी महाराष्ट्रात राहते",
+  "language": "mr"
+ },
+ {
+  "text": "माझ्याकडे शेती आहे",
+  "language": "mr"
+ },
+ {
+  "text": "मला कोणती कागदपत्रे लागतील?",
+  "language": "mr"
+ },
+ {
+  "text": "मी ३० वर्षांची आहे",
+  "language": "mr"
+ },
+ {
+  "text": "मी शेतकरी आहे आणि माझे बँक खाते आहे",
+  "language": "mr"
+ },
+ {
+  "text": "आमच्या कुटुंबाचे उत्पन्न अडीच लाख आहे",
+  "language": "mr"
+ },
+ {
+  "text": "मी पात्र आहे का?",
+  "language": "mr"
+ },
+ {
+  "text": "अर्ज कसा करायचा",
+  "language": "mr"
+ },
+ {
+  "text": "मला कोणती योजना मिळेल",
+  "language": "mr"
+ },
+ {
+  "text": "आम्ही गावात राहतो",
+  "language": "mr"
+ },
+ {
+  "text": "नाही, माझ्याकडे जमीन नाही",
+  "language": "mr"
+ },
+ {
+  "text": "main 30 saal ki mahila hoon",
+  "language": "hi"
+ },
+ {
+  "text": "mera parivar ka income 2 lakh hai",
+  "language": "hi"
+ },
+ {
+  "text": "mujhe kaun si yojana milegi",
+  "language": "hi"
+ },
+ {
+  "text": "mere paas zameen nahi hai",
+  "language": "hi"
+ },
+ {
+  "text": "main kisan hoon aur mere paas bank account hai",
+  "language": "hi"
+ },
+ {
+  "text": "mi shetkari ahe",
+  "language": "mr"
+ },
+ {
+  "text": "majhe kutumb gavat rahte",
+  "language": "mr"
+ },
+ {
+  "text": "mala konti yojana milel",
+  "language": "mr"
+ },
+ {
+  "text": "amhi gavat rahto ani amche utpanna kami ahe",
+  "language": "mr"
+ },
+ {
+  "text": "mi 30 varsh chi ahe",
+  "language": "mr"
+ },
+ {
+  "text": "30",
+  "language": null
+ },
+ {
+  "text": "2 lakh",
+  "language": null
+ },
+ {
+  "text": "३२",
+  "language": null
+ },
+ {
+  "text": "ok",
+  "language": null
+ },
+ {
+  "text": "",
+  "language": null
+ },
+ {
+  "text": "?!",
+  "language": null
+ },
+ {
+  "text": "I am 28, मैं महिला हूँ and मेरा income 2 lakh है",
+  "language": null,
+  "note": "genuinely mixed: tie, caller keeps current language"
+ },
+ {
+  "text": "Maharashtra",
+  "language": null,
+  "note": "proper noun only"
+ },
+ {
+  "text": "महाराष्ट्र",
+  "language": null,
+  "note": "shared Hindi/Marathi word, no markers"
+ },
+ {
+  "text": "नाही",
+  "language": "mr"
+ },
+ {
+  "text": "नहीं",
+  "language": "hi"
+ },
+ {
+  "text": "hoy",
+  "language": "mr"
+ }
+]
