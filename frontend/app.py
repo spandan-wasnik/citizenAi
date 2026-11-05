@@ -24,6 +24,8 @@ from frontend.ui_helpers import (LEVEL_TEXT, SCHEME_STATUS_TEXT, STATUS_HELP, ST
                                  group_results, question_priorities, rule_icon, tree_lines)
 
 PAGES = ["Browse schemes", "Check my eligibility", "About"]
+CHAT = "Chat"
+NATIVE = {"en": "English", "hi": "हिन्दी", "mr": "मराठी"}
 LINK_TYPE_TEXT = {"official_portal": "Official portal", "application": "Apply", "information": "More information",
                   "guidelines": "Guidelines", "helpline": "Helpline"}
 
@@ -299,14 +301,107 @@ simulated before they are real.
     st.caption(f"Service status: {h['status']} · schemes recorded: {h.get('schemes', 'unknown')}")
 
 
+# ------------------------------------------------------------------------------------ chat
+def ui_text(lang: str) -> dict:
+    """Interface strings for the chosen language, fetched from the API (one wording source)."""
+    cache = st.session_state.setdefault("ui_cache", {})
+    if lang not in cache:
+        cache[lang] = api_client.call("GET", f"/api/v1/ui/{lang}")["ui"]
+    return cache[lang]
+
+
+def _chat_turn(text: str, lang: str) -> None:
+    chat = st.session_state["chat"]
+    body = {"message": text, "language": lang}
+    if chat["state"] is not None:
+        body["state"] = chat["state"]
+    reply = api_client.call("POST", "/api/v1/chat", json=body)
+    chat["state"] = reply["state"]
+    if text:
+        chat["log"].append({"role": "user", "text": text})
+    chat["log"].append({"role": "assistant", "text": "\n\n".join(reply["messages"]), "info": reply["info"]})
+    chat["results"] = reply["results"]
+    chat["done"] = reply["done"]
+
+
+def _chat_reset() -> None:
+    st.session_state["chat"] = {"state": None, "log": [], "results": None, "done": False}
+
+
+def chat_results(res: dict, ui: dict) -> None:
+    st.subheader(ui["results_title"])
+    notice(res["notice"])
+    for status, items in group_results(res["results"]):
+        st.markdown(f"### {STATUS_ICON[status]} {items[0]['headline']} ({len(items)})")
+        st.caption(ui["status_help"][status])
+        for r in items:
+            with st.expander(r["name"]):
+                for x in r["reasons"]:
+                    st.write(f"• {x['text']}")
+                for x in r["warnings"]:
+                    st.write(f"⚠️ {x['text']}")
+                for rule in r["rules"]:
+                    st.markdown(f"{rule_icon(rule)} {rule['explanation']}")
+                    if rule.get("locator"):
+                        st.caption(f"{ui['source']}: {rule['locator']}")
+                if r["missing"]:
+                    st.markdown(f"**{ui['would_change']}** " + ", ".join(m["label"] for m in r["missing"]))
+                if r["confirm_officially"]:
+                    st.markdown(f"**{ui['confirm_officially']}**")
+                    for c in r["confirm_officially"]:
+                        st.markdown(f"- {c['text']}" + (f" {ui['english_shown']}" if c.get("language_used") == "en" and r.get("language") != "en" else ""))
+                rec = r.get("record") or {}
+                st.caption(ui["record_line"].format(
+                    verification=ui["verification"].get(rec.get("verification_status"), ""),
+                    date=rec.get("last_verified") or ui["never"],
+                    complete=ui["rules_complete"] if rec.get("rules_complete") else ui["rules_incomplete"]))
+
+
+def page_chat(lang: str) -> None:
+    ui = ui_text(lang)
+    if "chat" not in st.session_state:
+        _chat_reset()
+    chat = st.session_state["chat"]
+    st.header(ui["chat_title"])
+    st.caption(ui["chat_privacy"])
+    if st.button(ui["chat_start_over"], key="chat_reset"):
+        _chat_reset()
+        chat = st.session_state["chat"]
+    if chat["state"] is None:
+        _chat_turn("", lang)                       # opens with a greeting and the first question
+    for i, m in enumerate(chat["log"]):
+        with st.chat_message(m["role"]):
+            st.markdown(m["text"])
+            for j, item in enumerate(m.get("info") or []):
+                for k, l in enumerate(item["links"]):
+                    st.link_button(f"{l['label']} · {l['badge']}", l["url"], key=f"lnk_{i}_{j}_{k}")
+    if chat["results"]:
+        chat_results(chat["results"], ui)
+    text = st.chat_input(ui["chat_input"])
+    if text:
+        _chat_turn(text.strip()[:10000], lang)
+        st.rerun()
+
+
 # ------------------------------------------------------------------------------------ main
 def main() -> None:
     st.set_page_config(page_title="CitizenAssist AI", page_icon="🏛️", layout="centered")
     st.sidebar.title("CitizenAssist AI")
-    page = st.sidebar.radio("Go to", PAGES, key="page")
-    st.sidebar.caption("English only for now.")
+    lang = st.sidebar.radio("Language / भाषा / भाषा", list(NATIVE), format_func=NATIVE.get, key="lang")
+    try:
+        ui = ui_text(lang)
+    except (ApiUnavailable, ApiProblem):
+        ui = None
+    names = {CHAT: (ui or {}).get("nav_chat", CHAT), PAGES[0]: (ui or {}).get("nav_browse", PAGES[0]),
+             PAGES[1]: (ui or {}).get("nav_check", PAGES[1]), PAGES[2]: (ui or {}).get("nav_about", PAGES[2])}
+    page = st.sidebar.radio("Go to", [CHAT] + PAGES, format_func=names.get, key="page")
     if page != PAGES[0]:
         st.session_state["selected_scheme"] = None
+    if page == CHAT:
+        guarded(lambda: page_chat(lang))
+        return
+    if ui and lang != "en":
+        st.caption(ui["english_only_page"])
     guarded({PAGES[0]: page_browse, PAGES[1]: page_eligibility, PAGES[2]: page_about}[page])
 
 

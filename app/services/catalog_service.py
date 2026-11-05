@@ -15,16 +15,6 @@ from app.domain.explain import LABELS, PRELIMINARY_NOTICE, describe_exclusion, d
 from app.services.eligibility_service import SchemeNotFound, load_scheme_rules
 
 SUPPORTED_LANGS = ("en", "hi", "mr")
-LINK_BADGE = {
-    "verified_manual": "Verified by a person",
-    "auto_checked": "Link responded when checked (this is not a verification)",
-    "unverified": "Not verified",
-    "broken": "Link appears broken",
-    "redirected_unverified": "Redirects elsewhere; not verified",
-    "suspicious": "Flagged as suspicious; do not use",
-}
-
-
 def _name_map(session: Session, lang: str) -> dict[str, tuple[str, str]]:
     """scheme_id -> (name, language actually used), preferring `lang`, falling back to English."""
     rows = session.execute(select(m.SchemeTranslation.scheme_id, m.SchemeTranslation.lang,
@@ -105,8 +95,9 @@ def get_scheme_detail(session: Session, scheme_id: str, *, lang: str = "en", tod
     documents = []
     for d in session.scalars(select(m.SchemeDocument).where(m.SchemeDocument.scheme_id == scheme_id)
                              .order_by(m.SchemeDocument.requirement_type, m.SchemeDocument.document_code)):
-        documents.append({"code": d.document_code, "name": doc_names.get((d.document_code, lang))
-                          or doc_names.get((d.document_code, "en")) or d.document_code,
+        name_lang = lang if (d.document_code, lang) in doc_names else "en"
+        documents.append({"code": d.document_code, "name": doc_names.get((d.document_code, name_lang)) or d.document_code,
+                          "language_used": name_lang,
                           "requirement_type": d.requirement_type, "purpose_note": d.purpose_note,
                           "source": _source_info(session, d.source_doc_id, cache), "locator": d.source_locator})
 
@@ -115,7 +106,7 @@ def get_scheme_detail(session: Session, scheme_id: str, *, lang: str = "en", tod
     steps_rows = session.scalars(select(m.ApplicationStep).where(m.ApplicationStep.scheme_id == scheme_id)
                                  .order_by(m.ApplicationStep.lang, m.ApplicationStep.step_number)).all()
     step_lang = lang if any(r.lang == lang for r in steps_rows) else "en"
-    steps = [{"number": r.step_number, "instruction": r.instruction, "link": link_url.get(r.link_id),
+    steps = [{"number": r.step_number, "instruction": r.instruction, "language_used": step_lang, "link": link_url.get(r.link_id),
               "source": _source_info(session, r.source_doc_id, cache), "locator": r.source_locator}
              for r in steps_rows if r.lang == step_lang]
 
@@ -138,7 +129,8 @@ def get_scheme_detail(session: Session, scheme_id: str, *, lang: str = "en", tod
         "exclusions": [_tree(r, lang, exclusion=True) for r in (rules.exclusions.items if rules.exclusions else ())],
         "other_conditions": conditions, "documents": documents, "steps": steps,
         "links": [{"url": l.url, "link_type": l.link_type, "domain_class": l.domain_class,
-                   "verification_status": l.verification_status, "badge": LINK_BADGE.get(l.verification_status, ""),
+                   "verification_status": l.verification_status, "badge": catalog(lang)["link_badge"].get(l.verification_status, ""),
+                   "label": catalog(lang)["link_type"].get(l.link_type, l.link_type),
                    "last_checked_at": l.last_checked_at, "notes": l.notes, "open_in_new_tab": True} for l in links],
-        "notice": PRELIMINARY_NOTICE["en"],
+        "notice": PRELIMINARY_NOTICE[lang],
     }

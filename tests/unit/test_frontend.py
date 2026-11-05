@@ -127,8 +127,84 @@ def at(api, monkeypatch):
     monkeypatch.setattr(api_client, "get_client", lambda: api)
     app = AppTest.from_file(APP, default_timeout=30)
     app.run()
+    app.sidebar.radio(key="page").set_value("Browse schemes").run()
     assert not app.exception, app.exception
     return app
+
+
+@pytest.fixture()
+def chat_app(api, monkeypatch):
+    monkeypatch.setattr(api_client, "get_client", lambda: api)
+    app = AppTest.from_file(APP, default_timeout=30)
+    app.run()
+    assert not app.exception, app.exception
+    return app
+
+
+def _say(app, text):
+    app.chat_input[0].set_value(text).run()
+    assert not app.exception, app.exception
+
+
+def _chat_text(app):
+    return "\n".join(m.markdown[0].value for m in app.chat_message if m.markdown)
+
+
+# ------------------------------------------------------------------ the chat page
+def test_chat_is_the_first_page_and_opens_with_a_greeting_and_question(chat_app):
+    assert chat_app.sidebar.radio(key="page").value == "Chat"
+    text = _chat_text(chat_app)
+    assert "Hello" in text and "income" in text.lower()
+    assert chat_app.chat_input[0].placeholder.startswith("Type your answer")
+
+
+def test_chat_answers_are_understood_and_remembered(chat_app):
+    _say(chat_app, "I am 30 years old and I live in Pune")
+    text = _chat_text(chat_app)
+    assert "30" in text and "Maharashtra" in text
+
+
+def test_chat_documents_question_shows_sources_and_real_link_buttons(chat_app):
+    _say(chat_app, "What documents do I need for PM Kisan?")
+    assert "source:" in _chat_text(chat_app)
+    _say(chat_app, "official website for PM Kisan")
+    urls = {b.url for b in chat_app.get("link_button")} if hasattr(chat_app, "get") else set()
+    known = {l.url for s in SCHEMES for l in s.links}
+    assert urls <= known
+
+
+def test_language_selector_really_switches_the_chat_to_hindi(chat_app):
+    chat_app.sidebar.radio(key="lang").set_value("hi").run()
+    assert not chat_app.exception
+    assert chat_app.sidebar.radio(key="lang").value == "hi"
+    # a fresh conversation in Hindi
+    chat_app.button(key="chat_reset").click().run()
+    text = _chat_text(chat_app)
+    assert "नमस्ते" in text and not [w for w in text.split() if w.isascii() and w.isalpha() and w not in {"SC", "ST", "OBC", "EWS"}]
+
+
+def test_start_over_forgets_everything(chat_app):
+    _say(chat_app, "I am 30 years old")
+    chat_app.button(key="chat_reset").click().run()
+    assert "30" not in _chat_text(chat_app)
+
+
+def test_other_pages_say_when_their_labels_are_english_only(chat_app):
+    chat_app.sidebar.radio(key="lang").set_value("mr").run()
+    chat_app.sidebar.radio(key="page").set_value("About").run()
+    assert not chat_app.exception and chat_app.caption and any("English" in c.value or "इंग्रजी" in c.value for c in chat_app.caption)
+
+
+def test_chat_survives_an_unreachable_service(monkeypatch):
+    import httpx
+
+    def boom(request):
+        raise httpx.ConnectError("down")
+
+    monkeypatch.setattr(api_client, "get_client", lambda: httpx.Client(transport=httpx.MockTransport(boom), base_url="http://t"))
+    app = AppTest.from_file(APP, default_timeout=30)
+    app.run()
+    assert not app.exception and any("could not reach" in e.value for e in app.error)
 
 
 def test_browse_lists_all_five_schemes_with_real_buttons(at):

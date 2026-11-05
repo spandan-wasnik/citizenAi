@@ -23,7 +23,20 @@
   "restarted": "Okay, I have cleared your answers. Let us start again.",
   "language_changed": "I will now reply in {language}.",
   "text_too_long": "That message is too long. Please keep it under {limit} characters.",
-  "preliminary_notice": "This is a preliminary check based only on what you told us. It is not an official decision. Please confirm on the official portal before you apply."
+  "preliminary_notice": "This is a preliminary check based only on what you told us. It is not an official decision. Please confirm on the official portal before you apply.",
+  "which_scheme": "Which scheme do you mean? Please name it, for example PM Kisan or Atal Pension Yojana.",
+  "help_text": "Here you can check which schemes you may qualify for, learn the documents and steps for a scheme, and see official links. Tell me about yourself in your own words, or ask about a scheme.",
+  "thanks_reply": "You are welcome. Ask anything else, or type \"start over\" to begin again.",
+  "info_about": "About {scheme}:",
+  "info_documents": "Documents recorded for {scheme}:",
+  "info_steps": "How to apply for {scheme}:",
+  "info_links": "Official links for {scheme}:",
+  "info_none_documents": "We have no verified documents list recorded for {scheme}.",
+  "info_none_steps": "We have no verified application steps recorded for {scheme}.",
+  "info_none_links": "We have no verified official link recorded for {scheme}. We do not guess web addresses.",
+  "english_note": "(Shown in English: not yet available in {language}.)",
+  "source_label": "source",
+  "info_none_about": "We have no description recorded for {scheme}."
  },
  "questions": {
   "age_years": "How old are you? (in years)",
@@ -198,5 +211,65 @@
    "excl_not_verified": "{label}: {rule} This rule has not been verified against an official source yet."
   },
   "excluded_if": "excluded if the answer {cond}"
+ },
+ "doc_kind": {
+  "mandatory": "required",
+  "conditional": "needed in some cases",
+  "optional": "optional"
+ },
+ "ui": {
+  "nav_chat": "Chat",
+  "nav_browse": "Browse schemes",
+  "nav_check": "Check my eligibility",
+  "nav_about": "About",
+  "language": "Language",
+  "chat_title": "Chat",
+  "chat_input": "Type your answer or question…",
+  "chat_start_over": "Start over",
+  "chat_privacy": "Your messages are used only to run the check and are not saved. Your answers stay in this browser session.",
+  "english_only_page": "The labels on this page are in English for now. Explanations and results follow your language.",
+  "results_title": "Your results",
+  "results_none_answered": "You did not answer any questions, so most results will say more information is needed.",
+  "results_helpful": "Answers that would help most",
+  "results_sensitive": "(sensitive, optional)",
+  "results_affects": "affects {n} scheme(s)",
+  "results_used": "Answers used for this check",
+  "results_none": "None.",
+  "open_details": "Open scheme details",
+  "confirm_officially": "Confirm these officially (we cannot check them):",
+  "would_change": "Answers that would change the outcome:",
+  "record_line": "Record: {verification} · last checked {date} · rules {complete}",
+  "rules_complete": "complete",
+  "rules_incomplete": "may be incomplete",
+  "never": "never",
+  "english_shown": "(shown in English)",
+  "source": "Source",
+  "check_more": "Check again with more answers",
+  "status_help": {
+   "LIKELY_ELIGIBLE": "Every rule we could check is met, and our record is verified and complete.",
+   "INSUFFICIENT_INFORMATION": "We need more answers from you before we can say anything useful.",
+   "REQUIRES_OFFICIAL_VERIFICATION": "Our record is not complete or verified enough to give a firm answer. Check the official source.",
+   "LIKELY_INELIGIBLE": "A verified rule is clearly not met."
+  },
+  "verification": {
+   "draft": "Draft: not checked against an official source",
+   "source_verified": "Checked against the official text we were given; not yet reviewed by a person",
+   "human_reviewed": "Reviewed by a person"
+  }
+ },
+ "link_badge": {
+  "verified_manual": "Verified by a person",
+  "auto_checked": "Link responded when checked (this is not a verification)",
+  "unverified": "Not verified",
+  "broken": "Link appears broken",
+  "redirected_unverified": "Redirects elsewhere; not verified",
+  "suspicious": "Flagged as suspicious; do not use"
+ },
+ "link_type": {
+  "application": "Apply",
+  "information": "More information",
+  "status_tracking": "Track your application",
+  "helpline": "Helpline",
+  "guidelines": "Guidelines"
  }
 }

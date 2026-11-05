@@ -18,6 +18,7 @@ from app.domain.eligibility import Assessment, SENSITIVE_FIELDS, Status
 from app.domain.explain import (LABELS, PRELIMINARY_NOTICE, REASON_TEXT, STATUS_TEXT, confirm_list,
                                 explain_result)
 from app.domain.fields import PROFILE_FIELDS, STATE_NAMES
+from app.i18n.catalog import catalog
 from app.services.catalog_service import SUPPORTED_LANGS, get_scheme_detail, list_schemes
 from app.services.eligibility_service import SchemeNotFound, evaluate_from_db
 
@@ -93,6 +94,14 @@ def health(request: Request) -> dict[str, Any]:
 
 
 # ----------------------------------------------------------------------------- catalogue
+@router.get("/api/v1/ui/{lang}")
+def ui_text(lang: str) -> dict[str, Any]:
+    """Interface strings (labels, buttons, help texts) in one language, so every client shows the same wording."""
+    check_lang(lang)
+    c = catalog(lang)
+    return {"lang": lang, "ui": c["ui"], "languages": c["languages"], "yes": c["yes"], "no": c["no"]}
+
+
 @router.get("/api/v1/fields")
 def fields(session: Session = Depends(get_session)) -> dict[str, Any]:
     """The questions the evaluator understands, so a client can build a form that matches.
@@ -187,20 +196,19 @@ def evaluate_one(scheme_id: str, body: EvaluateRequest, session: Session = Depen
     return serialise(a, lang, _record(session, scheme_id, today))
 
 
-@router.post("/api/v1/evaluate")
-def evaluate_all(body: EvaluateRequest, session: Session = Depends(get_session),
-                 today: date = Depends(get_today)) -> dict[str, Any]:
+def evaluate_everything(session: Session, profile: dict[str, Any], lang: str, today: date) -> dict[str, Any]:
     """Check every scheme against one profile. Order: likely eligible, more information needed, needs verification,
-    likely not eligible; within a group by scheme id, so the order is stable and explainable."""
-    lang = check_lang(body.lang)
-    _check_profile(body.profile)
-    names = {t.scheme_id: t.official_name for t in session.scalars(
-        select(m.SchemeTranslation).where(m.SchemeTranslation.lang == "en"))}
+    likely not eligible; within a group by scheme id, so the order is stable and explainable. Scheme names come in the
+    requested language when we hold one and say which language they are in."""
+    names: dict[str, tuple[str, str]] = {}
+    for t in session.scalars(select(m.SchemeTranslation).where(m.SchemeTranslation.lang.in_(("en", lang)))):
+        if t.scheme_id not in names or t.lang == lang:
+            names[t.scheme_id] = (t.official_name, t.lang)
     results = []
     for sid in session.scalars(select(m.Scheme.scheme_id).order_by(m.Scheme.scheme_id)):
-        a = evaluate_from_db(session, sid, body.profile, today=today)
+        a = evaluate_from_db(session, sid, profile, today=today)
         item = serialise(a, lang, _record(session, sid, today))
-        item["name"] = names.get(sid, sid)
+        item["name"], item["name_language"] = names.get(sid, (sid, "en"))
         results.append((STATUS_ORDER[a.status], sid, item))
     results.sort(key=lambda t: (t[0], t[1]))
     counts: dict[str, int] = {}
@@ -208,3 +216,11 @@ def evaluate_all(body: EvaluateRequest, session: Session = Depends(get_session),
         counts[item["status"]] = counts.get(item["status"], 0) + 1
     return {"evaluated_on": today.isoformat(), "counts": counts, "results": [r[2] for r in results],
             "notice": PRELIMINARY_NOTICE[lang]}
+
+
+@router.post("/api/v1/evaluate")
+def evaluate_all(body: EvaluateRequest, session: Session = Depends(get_session),
+                 today: date = Depends(get_today)) -> dict[str, Any]:
+    lang = check_lang(body.lang)
+    _check_profile(body.profile)
+    return evaluate_everything(session, body.profile, lang, today)

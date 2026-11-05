@@ -8,6 +8,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 from app.api import errors
+from app.api.chat import router as chat_router
 from app.api.routes import API_VERSION, get_today, router
 from app.core.logging_config import setup_logging
 from app.config import get_settings
@@ -25,4 +26,5 @@ def create_app(database_url: str | None = None, today_provider=None) -> FastAPI:
         app.dependency_overrides[get_today] = today_provider
     errors.install(app)
     app.include_router(router)
+    app.include_router(chat_router)
     return app
