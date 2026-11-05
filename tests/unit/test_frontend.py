@@ -1,5 +1,6 @@
 """Front-end tests: pure helpers, plus the real Streamlit script run headlessly (AppTest)
 against the real API over a seeded temporary database."""
+import re
 from datetime import date
 from pathlib import Path
 
@@ -189,10 +190,57 @@ def test_start_over_forgets_everything(chat_app):
     assert "30" not in _chat_text(chat_app)
 
 
-def test_other_pages_say_when_their_labels_are_english_only(chat_app):
-    chat_app.sidebar.radio(key="lang").set_value("mr").run()
+LATIN_OK = {"SC", "ST", "OBC", "EWS", "AI", "CitizenAssist", "PM", "APY", "gov", "in", "nic", "python", "uvicorn", "app", "main",
+            "create", "factory", "scripts", "init", "db", "seed", "database"}
+
+
+def _chrome(app):
+    """Words in interface text (headers, captions, buttons, markdown), excluding scheme data from the API."""
+    out = [h.value for h in app.header] + [b.label for b in app.button]
+    out += [m.value for m in app.markdown if m.value.startswith(("###", "**"))]
+    return re.findall(r"[A-Za-z]+", " ".join(out))
+
+
+@pytest.mark.parametrize("lang,word", [("hi", "योजनाएँ"), ("mr", "योजना")])
+def test_browse_page_chrome_follows_the_language(chat_app, lang, word):
+    chat_app.sidebar.radio(key="lang").set_value(lang).run()
+    chat_app.sidebar.radio(key="page").set_value("Browse schemes").run()
+    assert not chat_app.exception
+    assert word in chat_app.header[0].value
+    assert not [w for w in _chrome(chat_app) if w not in LATIN_OK], _chrome(chat_app)
+
+
+@pytest.mark.parametrize("lang", ["hi", "mr"])
+def test_detail_page_chrome_follows_the_language_and_labels_english_text(chat_app, lang):
+    chat_app.sidebar.radio(key="lang").set_value(lang).run()
+    chat_app.sidebar.radio(key="page").set_value("Browse schemes").run()
+    chat_app.button(key="view_atal-pension-yojana").click().run()
+    assert not chat_app.exception
+    stray = [w for w in _chrome(chat_app) if w not in LATIN_OK]
+    assert not stray, stray
+    assert chat_app.button(key="back").label.startswith("←")
+
+
+@pytest.mark.parametrize("lang,go,title", [("hi", "योजनाएँ जाँचें", "आपके परिणाम"), ("mr", "योजना तपासा", "तुमचे निकाल")])
+def test_eligibility_page_and_results_follow_the_language(chat_app, lang, go, title):
+    chat_app.sidebar.radio(key="lang").set_value(lang).run()
+    chat_app.sidebar.radio(key="page").set_value("Check my eligibility").run()
+    chat_app.number_input(key="q_age_years").set_value(30)
+    chat_app.selectbox(key="q_state_code").set_value("MH")
+    next(b for b in chat_app.button if b.label == go).click().run()
+    assert not chat_app.exception
+    assert any(title in h.value for h in chat_app.subheader)
+    stray = [w for w in _chrome(chat_app) if w not in LATIN_OK]
+    assert not stray, stray
+
+
+@pytest.mark.parametrize("lang,word", [("en", "About CitizenAssist AI"), ("hi", "के बारे में"), ("mr", "बद्दल")])
+def test_about_page_follows_the_language(chat_app, lang, word):
+    chat_app.sidebar.radio(key="lang").set_value(lang).run()
     chat_app.sidebar.radio(key="page").set_value("About").run()
-    assert not chat_app.exception and chat_app.caption and any("English" in c.value or "इंग्रजी" in c.value for c in chat_app.caption)
+    assert not chat_app.exception and word in chat_app.header[0].value
+    body = " ".join(m.value for m in chat_app.markdown)
+    assert ("Hindi and Marathi are supported" in body) == (lang == "en")
 
 
 def test_chat_survives_an_unreachable_service(monkeypatch):
@@ -259,12 +307,6 @@ def test_answers_produce_results_and_clear_resets(at):
     at.button(key="clear").click().run()
     assert at.session_state["evaluation"] is None
     assert at.number_input(key="q_age_years").value is None
-
-
-def test_about_page_is_honest_about_language(at):
-    at.sidebar.radio(key="page").set_value("About").run()
-    assert not at.exception
-    assert "Only English is available" in " ".join(m.value for m in at.markdown)
 
 
 def test_api_down_shows_friendly_message(monkeypatch):

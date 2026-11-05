@@ -200,3 +200,11 @@ def test_ui_text_has_identical_keys_in_every_language(client):
         other = client.get(f"/api/v1/ui/{lang}").json()
         assert keys(other["ui"]) == keys(en["ui"])
     assert client.get("/api/v1/ui/fr").status_code == 400
+
+
+def test_fields_follow_the_language_and_refuse_unknown_ones(client):
+    hi = {f["key"]: f for f in client.get("/api/v1/fields?lang=hi").json()["fields"]}
+    en = {f["key"]: f for f in client.get("/api/v1/fields").json()["fields"]}
+    assert hi["state_code"]["value_labels"]["MH"] == "महाराष्ट्र" and en["state_code"]["value_labels"]["MH"] == "Maharashtra"
+    assert hi["age_years"]["label"] != en["age_years"]["label"] and set(hi) == set(en)
+    assert client.get("/api/v1/fields?lang=fr").status_code == 400

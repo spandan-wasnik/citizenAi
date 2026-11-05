@@ -58,9 +58,9 @@ def question_priorities(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(agg.values(), key=lambda e: (-len(e["schemes"]), e["label"]))
 
 
-def format_value(info: dict[str, Any], value: Any) -> str:
+def format_value(info: dict[str, Any], value: Any, *, yes: str = "Yes", no: str = "No") -> str:
     if isinstance(value, bool):
-        return "Yes" if value else "No"
+        return yes if value else no
     labels = info.get("value_labels") or {}
     if str(value) in labels:
         return labels[str(value)]
@@ -78,22 +78,25 @@ def format_value(info: dict[str, Any], value: Any) -> str:
     return str(value).replace("_", " ")
 
 
-def tree_lines(node: dict[str, Any] | None, *, exclusion: bool = False, depth: int = 0) -> list[str]:
+def tree_lines(node: dict[str, Any] | None, *, exclusion: bool = False, depth: int = 0,
+               strings: dict[str, str] | None = None) -> list[str]:
     """The rule tree as markdown bullet lines. Each rule keeps its locator so the person can check it."""
     if not node:
         return []
     pad = "  " * depth
+    st = {"all": "All of these must be met", "any": "At least one of these must be met",
+          "not_checkable": "(cannot be checked from your answers)", "source": "source", **(strings or {})}
     if node["type"] == "rule":
         bits = [f"{pad}- **{node['label']}**: {node['requirement']}"]
         if not node.get("checkable_from_profile"):
-            bits.append("*(cannot be checked from your answers)*")
+            bits.append(f"*{st['not_checkable']}*")
         if node.get("locator"):
-            bits.append(f"· source: {node['locator']}")
+            bits.append(f"· {st['source']}: {node['locator']}")
         return [" ".join(bits)]
-    lead = {"AND": "All of these must be met", "OR": "At least one of these must be met"}.get(node["logic"], node["logic"])
+    lead = {"AND": st["all"], "OR": st["any"]}.get(node["logic"], node["logic"])
     lines = [] if exclusion else [f"{pad}- *{lead}:*"]
     for item in node["items"]:
-        lines += tree_lines(item, exclusion=exclusion, depth=depth + (0 if exclusion else 1))
+        lines += tree_lines(item, exclusion=exclusion, depth=depth + (0 if exclusion else 1), strings=strings)
     return lines
 
 

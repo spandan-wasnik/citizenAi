@@ -19,31 +19,35 @@ import streamlit as st  # noqa: E402
 
 from frontend import api_client  # noqa: E402
 from frontend.api_client import ApiProblem, ApiUnavailable  # noqa: E402
-from frontend.ui_helpers import (LEVEL_TEXT, SCHEME_STATUS_TEXT, STATUS_HELP, STATUS_ICON,  # noqa: E402
-                                 VERIFICATION_TEXT, build_profile, collect_sources, format_value,
+from frontend.ui_helpers import (STATUS_ICON, build_profile, collect_sources, format_value,  # noqa: E402
                                  group_results, question_priorities, rule_icon, tree_lines)
 
 PAGES = ["Browse schemes", "Check my eligibility", "About"]
 CHAT = "Chat"
 NATIVE = {"en": "English", "hi": "हिन्दी", "mr": "मराठी"}
-LINK_TYPE_TEXT = {"official_portal": "Official portal", "application": "Apply", "information": "More information",
-                  "guidelines": "Guidelines", "helpline": "Helpline"}
 
 
 # ------------------------------------------------------------------------------------ shared
-def guarded(fn):
+def ui_text(lang: str) -> dict:
+    """Interface strings for the chosen language, fetched from the API (one wording source)."""
+    cache = st.session_state.setdefault("ui_cache", {})
+    if lang not in cache:
+        cache[lang] = api_client.call("GET", f"/api/v1/ui/{lang}")["ui"]
+    return cache[lang]
+
+
+def guarded(fn, t: dict | None = None):
     """Run a page; turn API trouble into a plain-language message instead of a traceback."""
+    t = t or ui_text("en")
     try:
         fn()
     except ApiUnavailable:
-        st.error("We could not reach the CitizenAssist service. Start it with "
-                 "`python -m uvicorn app.main:create_app --factory` and reload this page.")
+        st.error(t["service_down"])
     except ApiProblem as e:
         if e.code == "database_not_ready":
-            st.error("The scheme database has not been created yet. Run `python -m scripts.init_db` "
-                     "and `python -m scripts.seed_database`, then reload.")
+            st.error(t["db_not_ready"])
         else:
-            st.error(f"The service reported a problem ({e.code}): {e.message}")
+            st.error(t["service_problem"].format(code=e.code, message=e.message))
 
 
 def notice(text: str) -> None:
@@ -51,138 +55,150 @@ def notice(text: str) -> None:
 
 
 # ------------------------------------------------------------------------------------ browse
-def page_browse() -> None:
-    st.header("Browse schemes")
+def page_browse(lang: str, t: dict) -> None:
+    st.header(t["browse_title"])
     if st.session_state.get("selected_scheme"):
-        return show_detail(st.session_state["selected_scheme"])
+        return show_detail(st.session_state["selected_scheme"], lang, t)
 
-    fields = {f["key"]: f for f in api_client.call("GET", "/api/v1/fields")["fields"]}
+    fields = {f["key"]: f for f in api_client.call("GET", "/api/v1/fields", params={"lang": lang})["fields"]}
     states = fields["state_code"]["value_labels"]
+    level_name = {"central": t["level_central"], "state": t["level_state"], "ut": t["level_ut"], "local": t["level_local"]}
     c1, c2, c3 = st.columns([3, 1, 2])
-    q = c1.text_input("Search by name or topic", key="browse_q", max_chars=100)
-    level = c2.selectbox("Level", ["All", "central", "state"], format_func=lambda x: LEVEL_TEXT.get(x, x), key="browse_level")
-    state = c3.selectbox("State", [None] + list(states), format_func=lambda c: "All states" if c is None else states[c],
-                         key="browse_state", help="Central schemes are always included.")
-    params = {k: v for k, v in {"q": q.strip() or None, "level": None if level == "All" else level, "state": state}.items() if v}
+    q = c1.text_input(t["browse_search"], key="browse_q", max_chars=100)
+    level = c2.selectbox(t["browse_level"], ["All", "central", "state"],
+                         format_func=lambda x: t["browse_all"] if x == "All" else level_name[x], key="browse_level")
+    state = c3.selectbox(t["browse_state"], [None] + list(states),
+                         format_func=lambda c: t["browse_all_states"] if c is None else states[c],
+                         key="browse_state", help=t["browse_state_help"])
+    params = {k: v for k, v in {"q": q.strip() or None, "level": None if level == "All" else level,
+                                "state": state, "lang": lang}.items() if v}
     data = api_client.call("GET", "/api/v1/schemes", params=params)
-    st.caption(f"{data['count']} scheme(s) found")
+    st.caption(t["browse_count"].format(n=data["count"]))
     if not data["count"]:
-        st.warning("No scheme in our records matches. We only list schemes whose details we have checked against official sources.")
+        st.warning(t["browse_none"])
     for s in data["schemes"]:
         with st.container(border=True):
             st.subheader(s["name"])
-            st.caption(f"{LEVEL_TEXT.get(s['level'], s['level'])} scheme · {SCHEME_STATUS_TEXT.get(s['status'], s['status'])} · "
-                       f"{VERIFICATION_TEXT.get(s['verification_status'], s['verification_status'])}")
-            if st.button("View details", key=f"view_{s['scheme_id']}"):
+            st.caption(" · ".join([t["level_line"].format(level=level_name.get(s["level"], s["level"])),
+                                   t.get("status_" + s["status"], s["status"]),
+                                   t["verification"].get(s["verification_status"], s["verification_status"])]))
+            if st.button(t["view_details"], key=f"view_{s['scheme_id']}"):
                 st.session_state["selected_scheme"] = s["scheme_id"]
                 st.rerun()
 
 
-def show_detail(scheme_id: str) -> None:
-    if st.button("← Back to all schemes", key="back"):
+def show_detail(scheme_id: str, lang: str, t: dict) -> None:
+    if st.button(t["back"], key="back"):
         st.session_state["selected_scheme"] = None
         st.rerun()
     try:
-        d = api_client.call("GET", f"/api/v1/schemes/{scheme_id}")
+        d = api_client.call("GET", f"/api/v1/schemes/{scheme_id}", params={"lang": lang})
     except ApiProblem as e:
         if e.code == "scheme_not_found":
             st.session_state["selected_scheme"] = None
-            st.warning("That scheme is not in our records.")
+            st.warning(t["scheme_not_found"])
             return
         raise
     tr, rec = d["translation"], d["record"]
+    tree_t = {"all": t["tree_all"], "any": t["tree_any"], "not_checkable": t["not_checkable"],
+              "source": t["source_line"].split("{")[0].strip()}
+    src = lambda loc: t["source_line"].format(locator=loc)  # noqa: E731
     st.subheader(tr["name"] if tr else d["scheme_id"])
-    badges = [VERIFICATION_TEXT.get(rec["verification_status"], rec["verification_status"]),
-              SCHEME_STATUS_TEXT.get(rec["status"], rec["status"])]
+    badges = [t["verification"].get(rec["verification_status"], rec["verification_status"]),
+              t.get("status_" + rec["status"], rec["status"])]
     if rec["is_stale"]:
-        badges.append("Overdue for re-check")
+        badges.append(t["overdue"])
     st.caption(" · ".join(badges))
+    if tr and tr.get("language") and tr["language"] != lang:
+        st.caption(f"{t['english_shown']}")
     if rec["last_verified"]:
-        st.caption(f"Last checked against the official source: {rec['last_verified']}")
+        st.caption(t["last_checked"].format(date=rec["last_verified"]))
     if not rec["rules_complete"]:
-        st.warning("Our list of rules for this scheme may be incomplete. Always read the official conditions before applying.")
+        st.warning(t["rules_incomplete_warn"])
     if rec["is_stale"]:
-        st.warning("This record is overdue for a re-check, so details may have changed.")
+        st.warning(t["stale_warn"])
     if tr:
-        for title, key in (("What it is", "short_description"), ("Benefits", "benefits"), ("Who it is for", "target_beneficiaries")):
+        for title, key in ((t["what_it_is"], "short_description"), (t["benefits"], "benefits"), (t["who_for"], "target_beneficiaries")):
             if tr.get(key):
                 st.markdown(f"**{title}**")
                 st.write(tr[key])
     st.caption(" · ".join(x for x in (d.get("ministry"), d.get("department")) if x))
 
-    st.markdown("### Eligibility rules")
-    lines = tree_lines(d["eligibility"])
+    st.markdown(f"### {t['eligibility_rules']}")
+    lines = tree_lines(d["eligibility"], strings=tree_t)
     if lines:
         st.markdown("\n".join(lines))
     else:
-        st.write("We have no verified rules recorded that can be checked from your answers.")
-    ex = [ln for e in d["exclusions"] for ln in tree_lines(e, exclusion=True)]
+        st.write(t["no_rules"])
+    ex = [ln for e in d["exclusions"] for ln in tree_lines(e, exclusion=True, strings=tree_t)]
     if ex:
-        st.markdown("**Exclusions**")
+        st.markdown(f"**{t['exclusions']}**")
         st.markdown("\n".join(ex))
     if d["other_conditions"]:
-        st.markdown("**Other official conditions (confirm these officially)**")
+        st.markdown(f"**{t['other_conditions']}**")
         for c in d["other_conditions"]:
-            st.markdown(f"- {c['text']}  \n  <small>source: {c['locator']}</small>", unsafe_allow_html=True)
+            tag = f" {t['english_shown']}" if c.get("language_used") not in (None, lang) else ""
+            st.markdown(f"- {c['text']}{tag}  \n  <small>{src(c['locator'])}</small>", unsafe_allow_html=True)
 
-    st.markdown("### Documents")
+    st.markdown(f"### {t['documents']}")
     if d["documents"]:
-        for kind, title in (("mandatory", "Required"), ("conditional", "Needed only in some cases (see the official source)"), ("optional", "Optional")):
+        for kind, title in (("mandatory", t["doc_required"]), ("conditional", t["doc_conditional"]), ("optional", t["doc_optional"])):
             docs = [x for x in d["documents"] if x["requirement_type"] == kind]
             if docs:
                 st.markdown(f"**{title}**")
                 for x in docs:
                     note = f" — {x['purpose_note']}" if x.get("purpose_note") else ""
-                    st.markdown(f"- {x['name']}{note}  \n  <small>source: {x['locator']}</small>", unsafe_allow_html=True)
+                    tag = f" {t['english_shown']}" if x.get("language_used") not in (None, lang) else ""
+                    st.markdown(f"- {x['name']}{note}{tag}  \n  <small>{src(x['locator'])}</small>", unsafe_allow_html=True)
     else:
-        st.write("We have no verified document list for this scheme.")
+        st.write(t["no_documents"])
 
-    st.markdown("### How to apply")
+    st.markdown(f"### {t['how_to_apply']}")
     if d["steps"]:
         for stp in d["steps"]:
-            st.markdown(f"{stp['number']}. {stp['instruction']}  \n   <small>source: {stp['locator']}</small>", unsafe_allow_html=True)
+            tag = f" {t['english_shown']}" if stp.get("language_used") not in (None, lang) else ""
+            st.markdown(f"{stp['number']}. {stp['instruction']}{tag}  \n   <small>{src(stp['locator'])}</small>", unsafe_allow_html=True)
     else:
-        st.write("We have no verified application steps for this scheme. Please use the official links below, if any.")
+        st.write(t["no_steps"])
 
-    st.markdown("### Official links")
+    st.markdown(f"### {t['official_links']}")
     if not d["links"]:
-        st.write("We have no verified official link for this scheme yet. We do not guess web addresses.")
+        st.write(t["no_links"])
     for i, l in enumerate(d["links"]):
-        label = LINK_TYPE_TEXT.get(l["link_type"], l["link_type"])
         if l["domain_class"] == "suspicious":
-            st.error(f"A link for this scheme failed our safety checks, so we are not showing it as a button: {l['url']}")
+            st.error(t["link_suspicious"].format(url=l["url"]))
             continue
-        origin = ("Government domain (.gov.in / .nic.in)" if l["domain_class"] in ("gov_in", "nic_in")
-                  else "Domain not on our government list: check it is official")
-        st.link_button(f"{label} ↗", l["url"], key=f"link_{i}", help="Opens in a new tab")
+        origin = t["gov_domain"] if l["domain_class"] in ("gov_in", "nic_in") else t["other_domain"]
+        st.link_button(f"{l.get('label') or l['link_type']} ↗", l["url"], key=f"link_{i}", help=t["opens_new_tab"])
         st.caption(f"{l['url']} · {origin} · {l['badge']}")
         if l.get("notes"):
             st.caption(l["notes"])
 
     srcs = collect_sources(d)
     if srcs:
-        with st.expander(f"Sources ({len(srcs)})"):
+        with st.expander(t["sources_n"].format(n=len(srcs))):
             for s in srcs:
                 st.markdown(f"- [{s['title']}]({s['url']})")
     notice(d["notice"])
 
 
 # ------------------------------------------------------------------------------------ eligibility
-def _widget(f: dict) -> object:
+def _widget(f: dict, t: dict, yes: str, no: str) -> object:
     key, label = f"q_{f['key']}", f["label"]
-    help_ = "Used by: " + ", ".join(f["used_by"])
-    t = f["type"]
-    if t == "bool":
-        v = st.selectbox(label, ["Yes", "No"], index=None, placeholder="Prefer not to say", key=key, help=help_)
-        return None if v is None else v == "Yes"
-    if t in ("enum",):
+    help_ = t["used_by"].format(names=", ".join(f["used_by"]))
+    ty = f["type"]
+    if ty == "bool":
+        v = st.selectbox(label, [True, False], index=None, placeholder=t["prefer_not"], key=key, help=help_,
+                         format_func=lambda x: yes if x else no)
+        return v
+    if ty == "enum":
         opts = list(f["value_labels"] or f["allowed_values"] or [])
         names = f["value_labels"] or {o: o.replace("_", " ").capitalize() for o in opts}
-        return st.selectbox(label, opts, index=None, placeholder="Prefer not to say", key=key, help=help_,
+        return st.selectbox(label, opts, index=None, placeholder=t["prefer_not"], key=key, help=help_,
                             format_func=lambda o: names[o])
-    if t == "money_inr":
+    if ty == "money_inr":
         return st.number_input(f"{label} (₹)", min_value=0, max_value=10**10, value=None, step=1000, key=key, help=help_)
-    if t == "int":
+    if ty == "int":
         return st.number_input(label, min_value=0, max_value=120 if f["key"] == "age_years" else 1000,
                                value=None, step=1, key=key, help=help_)
     return st.text_input(label, key=key, help=help_, max_chars=100)
@@ -200,116 +216,68 @@ def _open_scheme(scheme_id: str) -> None:
     st.session_state["selected_scheme"] = scheme_id
 
 
-def page_eligibility() -> None:
-    st.header("Check my eligibility")
-    st.write("Answer what you are comfortable sharing. Leave a question blank if you prefer not to answer: "
-             "we never treat a blank as 'no' or zero, and we only ask what the recorded rules use.")
-    st.caption("Your answers stay in this browser session, are sent only to our own service to run the check, "
-               "and are not saved.")
-    fields = [f for f in api_client.call("GET", "/api/v1/fields")["fields"] if f["used_by"]]
+def page_eligibility(lang: str, t: dict) -> None:
+    st.header(t["check_title"])
+    st.write(t["check_intro"])
+    st.caption(t["check_privacy"])
+    ui_all = api_client.call("GET", f"/api/v1/ui/{lang}")
+    yes, no = ui_all["yes"], ui_all["no"]
+    fields = [f for f in api_client.call("GET", "/api/v1/fields", params={"lang": lang})["fields"] if f["used_by"]]
     by_key = {f["key"]: f for f in fields}
 
     answers: dict[str, object] = {}
     with st.form("profile_form"):
         for f in (x for x in fields if not x["sensitive"]):
-            answers[f["key"]] = _widget(f)
+            answers[f["key"]] = _widget(f, t, yes, no)
         sensitive = [x for x in fields if x["sensitive"]]
         if sensitive:
-            with st.expander("Sensitive questions (optional)"):
-                st.caption("Only answer these if you want a more complete result. They are used for the check only.")
+            with st.expander(t["sensitive_title"]):
+                st.caption(t["sensitive_note"])
                 for f in sensitive:
-                    answers[f["key"]] = _widget(f)
-        submitted = st.form_submit_button("Check schemes", type="primary")
-    st.button("Clear my answers", on_click=_clear_answers, key="clear")
+                    answers[f["key"]] = _widget(f, t, yes, no)
+        submitted = st.form_submit_button(t["check_button"], type="primary")
+    st.button(t["clear_answers"], on_click=_clear_answers, key="clear")
 
     if submitted:
         profile = build_profile(answers)
         st.session_state["evaluation"] = {"profile": profile,
                                           "response": api_client.call("POST", "/api/v1/evaluate",
-                                                                      json={"profile": profile, "lang": "en"})}
+                                                                      json={"profile": profile, "lang": lang})}
     ev = st.session_state.get("evaluation")
     if ev:
-        show_results(ev["response"], ev["profile"], by_key)
+        show_results(ev["response"], ev["profile"], by_key, t, yes, no)
 
 
-def show_results(resp: dict, profile: dict, by_key: dict) -> None:
+def show_results(resp: dict, profile: dict, by_key: dict, t: dict, yes: str = "Yes", no: str = "No") -> None:
     st.divider()
-    st.subheader("Your results")
-    notice(resp["notice"])
+    chat_results(resp, t)
     if not profile:
-        st.warning("You did not answer any questions, so most results will say more information is needed.")
-    for status, items in group_results(resp["results"]):
-        st.markdown(f"### {STATUS_ICON[status]} {items[0]['headline']} ({len(items)})")
-        st.caption(STATUS_HELP[status])
-        for r in items:
-            with st.expander(r["name"]):
-                for x in r["reasons"]:
-                    st.write(f"• {x['text']}")
-                for x in r["warnings"]:
-                    st.write(f"⚠️ {x['text']}")
-                for rule in r["rules"]:
-                    st.markdown(f"{rule_icon(rule)} {rule['explanation']}")
-                    if rule.get("locator"):
-                        st.caption(f"Source: {rule['locator']}")
-                if r["missing"]:
-                    st.markdown("**Answers that would change the outcome:** " + ", ".join(m["label"] for m in r["missing"]))
-                if r["confirm_officially"]:
-                    st.markdown("**Confirm these officially (we cannot check them):**")
-                    for c in r["confirm_officially"]:
-                        st.markdown(f"- {c['text']}")
-                rec = r.get("record") or {}
-                st.caption(f"Record: {VERIFICATION_TEXT.get(rec.get('verification_status'), '')} · "
-                           f"last checked {rec.get('last_verified') or 'never'} · rules {'complete' if rec.get('rules_complete') else 'may be incomplete'}")
-                st.button("Open scheme details", key=f"open_{r['scheme_id']}", on_click=_open_scheme, args=(r["scheme_id"],))
-
+        st.warning(t["results_none_answered"])
     prio = question_priorities(resp["results"])
     if prio:
-        st.markdown("### Answers that would help most")
+        st.markdown(f"### {t['results_helpful']}")
         for p in prio:
-            tag = " (sensitive, optional)" if p["sensitive"] else ""
-            st.markdown(f"- **{p['label']}**{tag}: affects {len(p['schemes'])} scheme(s)")
-    with st.expander("Answers used for this check"):
+            tag = f" {t['results_sensitive']}" if p["sensitive"] else ""
+            st.markdown(f"- **{p['label']}**{tag}: {t['results_affects'].format(n=len(p['schemes']))}")
+    with st.expander(t["results_used"]):
         if profile:
             for k, v in profile.items():
-                st.write(f"{by_key[k]['label']}: {format_value(by_key[k], v)}" if k in by_key else f"{k}: {v}")
+                st.write(f"{by_key[k]['label']}: {format_value(by_key[k], v, yes=yes, no=no)}" if k in by_key else f"{k}: {v}")
         else:
-            st.write("None.")
+            st.write(t["results_none"])
 
 
 # ------------------------------------------------------------------------------------ about
-def page_about() -> None:
-    st.header("About CitizenAssist AI")
-    st.write("CitizenAssist helps you find out which government schemes you may qualify for, which documents you "
-             "may need, and where the official application is. It is not an official government service.")
-    st.markdown("""
-**How results are decided.** Fixed rules copied from official documents are applied to your answers. No AI guesses
-are involved in eligibility. Each rule shows where it came from.
-
-**What the results mean**
-- 🟢 *Likely eligible*: every rule we could check is met and our record is verified and complete.
-- 🟡 *More information needed*: an answer you left blank could change the outcome.
-- 🟠 *Needs official verification*: our record is not complete or current enough for a firm answer.
-- 🔴 *Likely not eligible*: a verified rule is not met.
-
-**Honest limits.** We list only a few schemes so far, each checked against official text we were given.
-Rules and deadlines change, so a result is never an approval. Links open the official site in a new tab.
-
-**Language.** Only English is available at the moment. Hindi and Marathi are planned and will not be
-simulated before they are real.
-""")
+def page_about(lang: str, t: dict) -> None:
+    st.header(t["about_title"])
+    st.write(t["about_intro"])
+    for k in ("about_how", "about_meaning", "about_limits", "about_language"):
+        st.markdown(t[k])
     h = api_client.call("GET", "/health")
-    st.caption(f"Service status: {h['status']} · schemes recorded: {h.get('schemes', 'unknown')}")
+    st.caption(t["service_status"].format(status=h["status"], n=h.get("schemes", t["unknown_word"])))
 
 
 # ------------------------------------------------------------------------------------ chat
-def ui_text(lang: str) -> dict:
-    """Interface strings for the chosen language, fetched from the API (one wording source)."""
-    cache = st.session_state.setdefault("ui_cache", {})
-    if lang not in cache:
-        cache[lang] = api_client.call("GET", f"/api/v1/ui/{lang}")["ui"]
-    return cache[lang]
-
-
 def _chat_turn(text: str, lang: str) -> None:
     chat = st.session_state["chat"]
     body = {"message": text, "language": lang}
@@ -387,22 +355,25 @@ def page_chat(lang: str) -> None:
 def main() -> None:
     st.set_page_config(page_title="CitizenAssist AI", page_icon="🏛️", layout="centered")
     st.sidebar.title("CitizenAssist AI")
-    lang = st.sidebar.radio("Language / भाषा / भाषा", list(NATIVE), format_func=NATIVE.get, key="lang")
+    lang = st.sidebar.radio("Language / भाषा", list(NATIVE), format_func=NATIVE.get, key="lang")
     try:
-        ui = ui_text(lang)
+        t = ui_text(lang)
     except (ApiUnavailable, ApiProblem):
-        ui = None
-    names = {CHAT: (ui or {}).get("nav_chat", CHAT), PAGES[0]: (ui or {}).get("nav_browse", PAGES[0]),
-             PAGES[1]: (ui or {}).get("nav_check", PAGES[1]), PAGES[2]: (ui or {}).get("nav_about", PAGES[2])}
-    page = st.sidebar.radio("Go to", [CHAT] + PAGES, format_func=names.get, key="page")
+        t = None
+    en = t or {}
+    names = {CHAT: en.get("nav_chat", CHAT), PAGES[0]: en.get("nav_browse", PAGES[0]),
+             PAGES[1]: en.get("nav_check", PAGES[1]), PAGES[2]: en.get("nav_about", PAGES[2])}
+    page = st.sidebar.radio(en.get("nav_go", "Go to"), [CHAT] + PAGES, format_func=names.get, key="page")
     if page != PAGES[0]:
         st.session_state["selected_scheme"] = None
-    if page == CHAT:
-        guarded(lambda: page_chat(lang))
+    if t is None:
+        st.error("We could not reach the CitizenAssist service. Start it with "
+                 "`python -m uvicorn app.main:create_app --factory` and reload this page.")
         return
-    if ui and lang != "en":
-        st.caption(ui["english_only_page"])
-    guarded({PAGES[0]: page_browse, PAGES[1]: page_eligibility, PAGES[2]: page_about}[page])
+    if page == CHAT:
+        guarded(lambda: page_chat(lang), t)
+    else:
+        guarded(lambda: {PAGES[0]: page_browse, PAGES[1]: page_eligibility, PAGES[2]: page_about}[page](lang, t), t)
 
 
 main()

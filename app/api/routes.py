@@ -103,7 +103,7 @@ def ui_text(lang: str) -> dict[str, Any]:
 
 
 @router.get("/api/v1/fields")
-def fields(session: Session = Depends(get_session)) -> dict[str, Any]:
+def fields(lang: str = "en", session: Session = Depends(get_session)) -> dict[str, Any]:
     """The questions the evaluator understands, so a client can build a form that matches.
     `used_by` lists the schemes whose rules need the answer: a client should ask only for fields that are used."""
     used: dict[str, list[str]] = {}
@@ -111,10 +111,19 @@ def fields(session: Session = Depends(get_session)) -> dict[str, Any]:
             select(m.Rule.field_key, m.RuleGroup.scheme_id).join(m.RuleGroup, m.Rule.group_id == m.RuleGroup.group_id)
             .distinct().order_by(m.RuleGroup.scheme_id)):
         used.setdefault(field_key, []).append(scheme_id)
+    check_lang(lang)
+    c = catalog(lang)
     state_fields = {"state_code", "domicile_state_code", "study_state_code"}
+
+    def value_labels(k: str, allowed: Any) -> dict[str, str] | None:
+        if k in state_fields:
+            return {code: c["states"].get(code, STATE_NAMES[code]) for code in sorted(STATE_NAMES)}
+        own = c["values"].get(k)
+        return {o: own[o] for o in sorted(allowed) if o in own} if own and allowed and all(o in own for o in allowed) else None
+
     return {"fields": [{"key": k, "type": t, "allowed_values": sorted(v) if v else None,
-                        "value_labels": ({c: STATE_NAMES[c] for c in sorted(STATE_NAMES)} if k in state_fields else None),
-                        "sensitive": bool(sens), "label": LABELS["en"].get(k, k), "description": d,
+                        "value_labels": value_labels(k, v),
+                        "sensitive": bool(sens), "label": LABELS[lang].get(k, k), "description": d,
                         "used_by": used.get(k, [])}
                        for k, t, v, sens, d in PROFILE_FIELDS]}
 
