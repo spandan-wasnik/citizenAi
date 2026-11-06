@@ -171,3 +171,18 @@ def test_missing_model_is_reported_as_unavailable_not_a_crash():
     emb = SentenceTransformerEmbedder("definitely/not-a-real-model-name-xyz")
     with pytest.raises(EmbeddingUnavailable):
         emb.embed_query("hello")
+
+
+# ------------------------------------------------------------------ the relative (z-score) evidence rule
+from app.ai.retrieval import Retriever  # noqa: E402
+
+
+def test_z_score_gate_is_off_by_default_and_only_adds_evidence_when_set(chunks, index, vindex):
+    emb = HashingEmbedder()
+    off = Retriever(chunks, index, vindex, emb)
+    q = "zzzz qqqq land records"                       # one word the records contain: too little for the lexical rule
+    assert all(h.vector_z is not None for h in off.search(q, language="en").hits)
+    strict = Retriever(chunks, index, vindex, emb, min_vector_z=50.0)
+    assert not any(h.evidence for h in strict.search("zzzz qqqq", language="en").hits)
+    loose = Retriever(chunks, index, vindex, emb, min_vector_z=0.5)
+    assert any(h.evidence for h in loose.search("land records pm kisan", language="en").hits)

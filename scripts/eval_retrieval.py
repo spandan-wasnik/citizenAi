@@ -23,7 +23,7 @@ from app.nlp.intent import classify_intent
 GOLD = Path(__file__).resolve().parents[1] / "eval" / "retrieval_gold.json"
 
 
-def run(semantic: bool, threshold: float | None) -> int:
+def run(semantic: bool, threshold: float | None, zmin: float | None = None) -> int:
     settings = get_settings()
     if semantic:
         settings = settings.model_copy(update={"semantic_search": True})
@@ -31,24 +31,29 @@ def run(semantic: bool, threshold: float | None) -> int:
     with session_scope(eng) as s:
         r = build_retriever(s, date.today(), settings)
     r.min_vector_similarity = threshold
+    r.min_vector_z = zmin
     mode = "hybrid" if r.vectors is not None else "keyword_only"
     if semantic and mode != "hybrid":
         print("Semantic search could not start (is requirements-ml.txt installed, and is the model downloaded?).")
         return 2
     cases = json.loads(GOLD.read_text(encoding="utf-8"))["cases"]
     stats: dict[str, dict[str, float]] = {}
-    sims_ok, sims_none = [], []
+    sims_ok, sims_none, z_ok, z_none, ranks = [], [], [], [], []
     for c in cases:
         it = classify_intent(c["q"])       # same scoping the API uses: a named scheme limits the search
         res = r.search(c["q"], language=c["lang"], scheme_ids=tuple(it.scheme_ids) or None, intent=it.primary)
         ev = [h for h in res.hits if h.evidence]
         top_sim = max((h.vector_sim for h in res.hits if h.vector_sim is not None), default=None)
+        top_z = max((h.vector_z for h in res.hits if h.vector_z is not None), default=None)
+        vrank = next((i for i, h in enumerate(sorted((h for h in res.hits if h.vector_rank), key=lambda h: h.vector_rank), 1)
+                      if not c.get("none") and h.chunk.scheme_id == c["scheme"] and h.chunk.section in c["sections"]), None)
         g = stats.setdefault(c["lang"], dict(n=0, hit3=0, rr=0.0, none=0, declined=0))
         if c.get("none"):
             g["none"] += 1
             g["declined"] += 0 if ev else 1
             if top_sim is not None:
                 sims_none.append(top_sim)
+                z_none.append(top_z)
             if ev:
                 print(f"  WRONGLY ANSWERED [{c['lang']}] {c['q']} -> {ev[0].chunk.scheme_id}/{ev[0].chunk.section}")
             continue
@@ -56,8 +61,10 @@ def run(semantic: bool, threshold: float | None) -> int:
         rank = next((i for i, h in enumerate(ev, 1) if h.chunk.scheme_id == c["scheme"] and h.chunk.section in c["sections"]), None)
         g["hit3"] += 1 if rank and rank <= 3 else 0
         g["rr"] += 1.0 / rank if rank else 0.0
-        if top_sim is not None and rank:
+        if top_sim is not None:
+            ranks.append((c["lang"], vrank))
             sims_ok.append(top_sim)
+            z_ok.append(top_z)
         if not rank:
             print(f"  MISSED [{c['lang']}] {c['q']}")
     print(f"\nmode: {mode}   threshold: {threshold}\n")
@@ -68,6 +75,13 @@ def run(semantic: bool, threshold: float | None) -> int:
     if sims_ok and sims_none:
         print(f"\nvector similarity: answerable top hits min={min(sims_ok):.3f}  out-of-scope top hits max={max(sims_none):.3f}")
         print("A threshold must sit between these to separate them; with overlap, no threshold is clean. Developer-written gold set: be sceptical.")
+    if z_ok and z_none:
+        print(f"z-score (similarity vs the average chunk): answerable top min={min(z_ok):.2f} median={sorted(z_ok)[len(z_ok) // 2]:.2f}"
+              f"  out-of-scope top max={max(z_none):.2f}")
+    if ranks:
+        for lang in sorted({l for l, _ in ranks}):
+            rs = [r for l, r in ranks if l == lang]
+            print(f"vector-only (no gate) {lang}: correct passage in vector top-3 for {sum(1 for r in rs if r and r <= 3)}/{len(rs)} answerable questions")
     return 0
 
 
@@ -75,5 +89,6 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--semantic", action="store_true")
     ap.add_argument("--threshold", type=float, default=None, help="minimum vector similarity that counts as evidence")
+    ap.add_argument("--zmin", type=float, default=None, help="minimum z-score that counts as evidence")
     a = ap.parse_args()
-    sys.exit(run(a.semantic, a.threshold))
+    sys.exit(run(a.semantic, a.threshold, a.zmin))

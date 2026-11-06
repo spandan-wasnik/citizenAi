@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+import numpy as np
+
 from app.ai.chunks import Chunk
 from app.ai.embeddings import Embedder, EmbeddingUnavailable
 from app.ai.keyword_index import KeywordIndex, tokens
@@ -29,6 +31,7 @@ class Hit:
     keyword_rank: int | None = None
     vector_rank: int | None = None
     vector_sim: float | None = None
+    vector_z: float | None = None           # how far above the average chunk this similarity is, in standard deviations
     evidence: bool = False
 
 
@@ -56,10 +59,11 @@ def coverage(question: str, chunk: Chunk) -> float:
 
 class Retriever:
     def __init__(self, chunks: list[Chunk], keyword: KeywordIndex, vectors: VectorIndex | None = None,
-                 embedder: Embedder | None = None, min_vector_similarity: float | None = None):
+                 embedder: Embedder | None = None, min_vector_similarity: float | None = None, min_vector_z: float | None = None):
         self.chunks = {c.chunk_id: c for c in chunks}
         self.keyword, self.vectors, self.embedder = keyword, vectors, embedder
         self.min_vector_similarity = min_vector_similarity
+        self.min_vector_z = min_vector_z
 
     def search(self, question: str, *, language: str, scheme_ids: tuple[str, ...] | None = None,
                intent: str | None = None, k: int = 5) -> Retrieval:
@@ -70,7 +74,7 @@ class Retriever:
         if self.vectors is not None and self.embedder is not None:
             try:
                 allowed = {cid for cid, c in self.chunks.items() if not scheme_ids or c.scheme_id in scheme_ids}
-                vec = self.vectors.search(self.embedder.embed_query(question), k=20, allowed=allowed)
+                vec = self.vectors.search(self.embedder.embed_query(question), k=len(self.vectors), allowed=allowed)
                 out.mode = "hybrid"
             except EmbeddingUnavailable:
                 out.note = "semantic search unavailable"
@@ -81,10 +85,13 @@ class Retriever:
             if cid in self.chunks:
                 h = scores.setdefault(cid, Hit(self.chunks[cid], 0.0))
                 h.keyword_rank, h.score = rank, h.score + 1.0 / (RRF_K + rank)
-        for rank, (cid, sim) in enumerate(vec, 1):
+        sims = np.array([x for _, x in vec], dtype="float64")
+        mean, std = (float(sims.mean()), float(sims.std())) if len(sims) > 1 else (0.0, 0.0)
+        for rank, (cid, sim) in enumerate(vec[:20], 1):
             if cid in self.chunks:
                 h = scores.setdefault(cid, Hit(self.chunks[cid], 0.0))
                 h.vector_rank, h.vector_sim, h.score = rank, sim, h.score + 1.0 / (RRF_K + rank)
+                h.vector_z = (sim - mean) / std if std > 1e-9 else 0.0
         wanted = SECTION_FOR_INTENT.get(intent or "", ())
         for h in scores.values():
             h.coverage = coverage(question, h.chunk)
@@ -93,6 +100,7 @@ class Retriever:
             lexical = h.keyword_rank is not None and h.coverage >= MIN_COVERAGE
             semantic = (self.min_vector_similarity is not None and h.vector_sim is not None
                         and h.vector_sim >= self.min_vector_similarity)
-            h.evidence = lexical or semantic
+            relative = (self.min_vector_z is not None and h.vector_z is not None and h.vector_z >= self.min_vector_z)
+            h.evidence = lexical or semantic or relative
         out.hits = sorted(scores.values(), key=lambda h: (-h.score, h.chunk.chunk_id))[:k]
         return out
