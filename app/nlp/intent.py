@@ -59,7 +59,7 @@ LANGUAGE_TARGETS = [("hi", phrase("hindi", "हिंदी")), ("mr", phrase("m
 SCHEME_ALIASES: dict[str, list[str]] = {
     "pm-kisan": ["pm kisan", "pm-kisan", "pmkisan", "kisan samman", "pradhan mantri kisan", "पीएम किसान", "पीएम-किसान", "किसान सम्मान"],
     "atal-pension-yojana": ["atal pension", "apy", "अटल पेंशन", "अटल पेन्शन"],
-    "mukhyamantri-majhi-ladki-bahin": ["ladki bahin", "ladaki bahin", "majhi ladki bahin", "ladki bahin yojana", "लाडकी बहीण", "लाडकी बहिण", "लाडली बहन"],
+    "mukhyamantri-majhi-ladki-bahin": ["ladki bahin", "ladaki bahin", "majhi ladki bahin", "ladki bahin yojana", "लाडकी बहीण", "लाडकी बहिण", "लाडकी बहिन", "लाडकी बहीन", "लाडकी बहन"],
     "post-matric-scholarship-sc": ["post matric", "post-matric", "postmatric", "पोस्ट मॅट्रिक", "पोस्ट मैट्रिक"],
     "rajarshi-shahu-maharaj-ebc-fee-concession": ["shahu maharaj", "ebc fee", "ebc concession", "राजर्षी शाहू", "शाहू महाराज", "शिक्षण शुल्क"],
 }

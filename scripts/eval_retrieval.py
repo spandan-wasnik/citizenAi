@@ -76,7 +76,8 @@ def run(semantic: bool, threshold: float | None, zmin: float | None = None) -> i
             sims_ok.append(top_sim)
             z_ok.append(top_z)
         if not rank:
-            print(f"  MISSED [{c['lang']}] {c['q']}")
+            print(f"  MISSED [{c['lang']}] {c['q']}   (names a scheme: {scoped}; best z: {top_z if top_z is None else round(top_z, 2)}; "
+                  f"correct passage rank by vector: {vrank})")
     print(f"\nmode: {mode}   threshold: {threshold}\n")
     for lang, g in sorted(stats.items()):
         n, none = g["n"], g["none"]

@@ -35,6 +35,8 @@ def _lines(a, lang: str) -> list[str]:
         tag = " " + message(lang, "english_note", language=catalog(lang)["languages"][lang]) if p["language"] != lang else ""
         src = p["sources"][0]["title"] if p["sources"] else ""
         out.append(f"{p['scheme_name']}: {p['text']}{tag}\n{message(lang, 'ask_source', title=src, locator=p['locator'] or '-')}")
+    if a.confidence == "low":
+        out.insert(1, message(lang, "ask_low"))
     out.append(message(lang, "ask_conf", level=message(lang, "conf_" + a.confidence)))
     if a.requires_verification:
         out.append(message(lang, "ask_verify"))

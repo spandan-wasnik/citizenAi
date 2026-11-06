@@ -45,7 +45,8 @@
   "conf_high": "high",
   "conf_medium": "medium",
   "conf_low": "low",
-  "ask_links": "Official links we have recorded for {scheme}:"
+  "ask_links": "Official links we have recorded for {scheme}:",
+  "ask_low": "These are the closest recorded passages and may not answer your exact question."
  },
  "questions": {
   "age_years": "How old are you? (in years)",

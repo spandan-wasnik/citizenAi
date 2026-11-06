@@ -142,3 +142,13 @@ def test_english_gold_questions_meet_a_floor_in_keyword_mode(client):
     gold = [c for c in json.loads((ROOT / "eval" / "retrieval_gold.json").read_text(encoding="utf-8"))["cases"] if c["lang"] == "en"]
     wrong = [c["q"] for c in gold if c.get("none") and ask(client, c["q"])["found"]]
     assert wrong == [], f"answered what the records cannot answer: {wrong}"
+
+
+def test_low_confidence_answers_say_they_may_not_answer_the_question():
+    from app.ai.qa import Answer
+    from app.api.ask import _lines
+    passage = {"scheme_name": "S", "text": "t", "language": "en", "locator": "p1", "sources": [{"url": "https://x.gov.in", "title": "T"}]}
+    for lang, word in (("en", "closest"), ("hi", "नज़दीकी"), ("mr", "जवळचे")):
+        low = _lines(Answer(found=True, passages=[passage], confidence="low"), lang)
+        high = _lines(Answer(found=True, passages=[passage], confidence="high", requires_verification=False), lang)
+        assert word in low[1] and not any(word in x for x in high)

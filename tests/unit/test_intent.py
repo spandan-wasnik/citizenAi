@@ -66,3 +66,11 @@ def test_greeting_only_counts_for_short_messages():
 def test_odd_input_never_crashes():
     for t in ["", "\u0000", "😀", "a" * 5000, "?!", "१" * 300]:
         classify_intent(t)
+
+
+def test_hindi_spellings_of_ladki_bahin_are_recognised_but_other_states_ladli_behna_is_not():
+    from app.nlp.intent import find_scheme_mentions
+    for q in ("लाडकी बहिन योजना", "लाडकी बहीण योजना", "लाडकी बहन योजना"):
+        assert find_scheme_mentions(q) == ["mukhyamantri-majhi-ladki-bahin"], q
+    assert find_scheme_mentions("लाडली बहना योजना मध्य प्रदेश") == []      # a different (Madhya Pradesh) scheme
+    assert find_scheme_mentions("लाडली बहन योजना") == []
