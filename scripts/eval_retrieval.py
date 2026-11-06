@@ -39,6 +39,8 @@ def run(semantic: bool, threshold: float | None, zmin: float | None = None) -> i
     cases = json.loads(GOLD.read_text(encoding="utf-8"))["cases"]
     stats: dict[str, dict[str, float]] = {}
     sims_ok, sims_none, z_ok, z_none, ranks = [], [], [], [], []
+    scoped_z = {"answerable": [], "out_of_scope": []}
+    unscoped = {"answerable": 0, "answered": 0, "out_of_scope": 0, "wrong": 0}   # questions that name no scheme
     for c in cases:
         it = classify_intent(c["q"])       # same scoping the API uses: a named scheme limits the search
         res = r.search(c["q"], language=c["lang"], scheme_ids=tuple(it.scheme_ids) or None, intent=it.primary)
@@ -47,6 +49,14 @@ def run(semantic: bool, threshold: float | None, zmin: float | None = None) -> i
         top_z = max((h.vector_z for h in res.hits if h.vector_z is not None), default=None)
         vrank = next((i for i, h in enumerate(sorted((h for h in res.hits if h.vector_rank), key=lambda h: h.vector_rank), 1)
                       if not c.get("none") and h.chunk.scheme_id == c["scheme"] and h.chunk.section in c["sections"]), None)
+        scoped = bool(it.scheme_ids)
+        kind = "out_of_scope" if c.get("none") else "answerable"
+        if scoped and top_z is not None:
+            scoped_z[kind].append(top_z)
+        if not scoped:
+            unscoped[kind] += 1
+            if ev:
+                unscoped["answered" if kind == "answerable" else "wrong"] += 1
         g = stats.setdefault(c["lang"], dict(n=0, hit3=0, rr=0.0, none=0, declined=0))
         if c.get("none"):
             g["none"] += 1
@@ -78,6 +88,10 @@ def run(semantic: bool, threshold: float | None, zmin: float | None = None) -> i
     if z_ok and z_none:
         print(f"z-score (similarity vs the average chunk): answerable top min={min(z_ok):.2f} median={sorted(z_ok)[len(z_ok) // 2]:.2f}"
               f"  out-of-scope top max={max(z_none):.2f}")
+    print(f"\nquestions naming a scheme  : z answerable top = {sorted(round(z, 2) for z in scoped_z['answerable'])}")
+    print(f"                             z out-of-scope top = {sorted(round(z, 2) for z in scoped_z['out_of_scope'])}")
+    print(f"questions naming no scheme : {unscoped['answerable']} answerable, {unscoped['answered']} of them answered; "
+          f"{unscoped['out_of_scope']} out-of-scope, {unscoped['wrong']} wrongly answered")
     if ranks:
         for lang in sorted({l for l, _ in ranks}):
             rs = [r for l, r in ranks if l == lang]

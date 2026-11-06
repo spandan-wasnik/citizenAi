@@ -101,6 +101,9 @@ class Retriever:
             semantic = (self.min_vector_similarity is not None and h.vector_sim is not None
                         and h.vector_sim >= self.min_vector_similarity)
             relative = (self.min_vector_z is not None and h.vector_z is not None and h.vector_z >= self.min_vector_z)
-            h.evidence = lexical or semantic or relative
+            # Measured with the real model: with only a handful of schemes, off-topic questions ("capital of France",
+            # "driving licence") land as close to some chunk as real questions do, so similarity alone cannot tell them
+            # apart. Semantic evidence therefore counts only when the question is tied to a named scheme.
+            h.evidence = lexical or ((semantic or relative) and bool(scheme_ids))
         out.hits = sorted(scores.values(), key=lambda h: (-h.score, h.chunk.chunk_id))[:k]
         return out

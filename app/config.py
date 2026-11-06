@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     embedding_model: str = "intfloat/multilingual-e5-small"
     semantic_search: bool = False          # needs requirements-ml.txt and the model files; off by default
     vector_store_dir: str = "data/vector_store"
+    semantic_min_z: float | None = None     # unset until measured with scripts/eval_retrieval.py on real questions
     guest_session_ttl_hours: int = 24
 
     @model_validator(mode="after")

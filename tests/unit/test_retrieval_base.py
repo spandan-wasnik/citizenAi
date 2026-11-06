@@ -186,3 +186,9 @@ def test_z_score_gate_is_off_by_default_and_only_adds_evidence_when_set(chunks, 
     assert not any(h.evidence for h in strict.search("zzzz qqqq", language="en").hits)
     loose = Retriever(chunks, index, vindex, emb, min_vector_z=0.5)
     assert any(h.evidence for h in loose.search("land records pm kisan", language="en").hits)
+
+
+def test_semantic_evidence_needs_a_named_scheme(chunks, index, vindex):
+    r = Retriever(chunks, index, vindex, HashingEmbedder(), min_vector_z=-100.0)   # would accept anything on similarity alone
+    assert not any(h.evidence for h in r.search("zzzz qqqq", language="en").hits)
+    assert any(h.evidence for h in r.search("zzzz qqqq", language="en", scheme_ids=("pm-kisan",)).hits)

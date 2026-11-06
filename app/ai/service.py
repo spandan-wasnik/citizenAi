@@ -43,7 +43,7 @@ def build_retriever(session: Session, today: date, settings: Settings | None = N
                     vectors.save(folder)
         except EmbeddingUnavailable:
             vectors, embedder = None, None
-    return Retriever(chunks, kw, vectors, embedder)
+    return Retriever(chunks, kw, vectors, embedder, min_vector_z=settings.semantic_min_z if settings else None)
 
 
 def get_retriever(app_state, session: Session, today: date, settings: Settings | None = None) -> Retriever:
