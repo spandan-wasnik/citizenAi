@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     ollama_model: str | None = None
 
     embedding_model: str = "intfloat/multilingual-e5-small"
+    semantic_search: bool = False          # needs requirements-ml.txt and the model files; off by default
+    vector_store_dir: str = "data/vector_store"
     guest_session_ttl_hours: int = 24
 
     @model_validator(mode="after")

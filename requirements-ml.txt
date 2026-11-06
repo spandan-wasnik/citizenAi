@@ -3,3 +3,4 @@
 # see README. The app keeps working without these (keyword search + extractive answers).
 sentence-transformers>=3.0
 faiss-cpu>=1.8
+numpy>=1.26

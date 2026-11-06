@@ -1,0 +1,230 @@
+{
+ "note": "Developer-written, so optimistic. 'none' means the records hold no answer and the system must decline. The last 'none' case is answerable from nothing we recorded (APY pension amounts).",
+ "cases": [
+  {
+   "q": "What documents do I need for PM Kisan?",
+   "lang": "en",
+   "scheme": "pm-kisan",
+   "sections": [
+    "documents"
+   ]
+  },
+  {
+   "q": "How much money do farmers get under PM Kisan?",
+   "lang": "en",
+   "scheme": "pm-kisan",
+   "sections": [
+    "benefits"
+   ]
+  },
+  {
+   "q": "Can a government employee's family get PM Kisan?",
+   "lang": "en",
+   "scheme": "pm-kisan",
+   "sections": [
+    "condition"
+   ]
+  },
+  {
+   "q": "Is income tax payer family excluded from PM Kisan?",
+   "lang": "en",
+   "scheme": "pm-kisan",
+   "sections": [
+    "condition"
+   ]
+  },
+  {
+   "q": "What is the age limit for Atal Pension Yojana?",
+   "lang": "en",
+   "scheme": "atal-pension-yojana",
+   "sections": [
+    "eligibility",
+    "who_for",
+    "overview"
+   ]
+  },
+  {
+   "q": "How do I enrol in Atal Pension Yojana?",
+   "lang": "en",
+   "scheme": "atal-pension-yojana",
+   "sections": [
+    "steps"
+   ]
+  },
+  {
+   "q": "Do I need a bank account for APY?",
+   "lang": "en",
+   "scheme": "atal-pension-yojana",
+   "sections": [
+    "condition"
+   ]
+  },
+  {
+   "q": "How much does Ladki Bahin pay every month?",
+   "lang": "en",
+   "scheme": "mukhyamantri-majhi-ladki-bahin",
+   "sections": [
+    "benefits",
+    "overview"
+   ]
+  },
+  {
+   "q": "Who is not eligible for Ladki Bahin?",
+   "lang": "en",
+   "scheme": "mukhyamantri-majhi-ladki-bahin",
+   "sections": [
+    "condition"
+   ]
+  },
+  {
+   "q": "Can I apply for Ladki Bahin if my family owns a car?",
+   "lang": "en",
+   "scheme": "mukhyamantri-majhi-ladki-bahin",
+   "sections": [
+    "condition"
+   ]
+  },
+  {
+   "q": "How to apply for Ladki Bahin?",
+   "lang": "en",
+   "scheme": "mukhyamantri-majhi-ladki-bahin",
+   "sections": [
+    "steps"
+   ]
+  },
+  {
+   "q": "Which scholarship is for Scheduled Caste students after class 10?",
+   "lang": "en",
+   "scheme": "post-matric-scholarship-sc",
+   "sections": [
+    "overview",
+    "who_for"
+   ]
+  },
+  {
+   "q": "Can I take two scholarships at the same time?",
+   "lang": "en",
+   "scheme": "post-matric-scholarship-sc",
+   "sections": [
+    "condition"
+   ]
+  },
+  {
+   "q": "What is the income limit for the SC post matric scholarship?",
+   "lang": "en",
+   "scheme": "post-matric-scholarship-sc",
+   "sections": [
+    "eligibility"
+   ]
+  },
+  {
+   "q": "Fee concession for EBC students in Maharashtra",
+   "lang": "en",
+   "scheme": "rajarshi-shahu-maharaj-ebc-fee-concession",
+   "sections": [
+    "overview",
+    "benefits",
+    "who_for"
+   ]
+  },
+  {
+   "q": "What attendance is needed for the Rajarshi Shahu Maharaj fee concession?",
+   "lang": "en",
+   "scheme": "rajarshi-shahu-maharaj-ebc-fee-concession",
+   "sections": [
+    "condition"
+   ]
+  },
+  {
+   "q": "पीएम किसान में कितना पैसा मिलता है?",
+   "lang": "hi",
+   "scheme": "pm-kisan",
+   "sections": [
+    "benefits"
+   ]
+  },
+  {
+   "q": "पीएम किसान के लिए कौन से दस्तावेज़ चाहिए?",
+   "lang": "hi",
+   "scheme": "pm-kisan",
+   "sections": [
+    "documents"
+   ]
+  },
+  {
+   "q": "अटल पेंशन योजना में उम्र की सीमा क्या है?",
+   "lang": "hi",
+   "scheme": "atal-pension-yojana",
+   "sections": [
+    "eligibility",
+    "who_for",
+    "overview"
+   ]
+  },
+  {
+   "q": "लाडकी बहिन योजना में कितने रुपये मिलते हैं?",
+   "lang": "hi",
+   "scheme": "mukhyamantri-majhi-ladki-bahin",
+   "sections": [
+    "benefits",
+    "overview"
+   ]
+  },
+  {
+   "q": "पीएम किसान योजनेत किती पैसे मिळतात?",
+   "lang": "mr",
+   "scheme": "pm-kisan",
+   "sections": [
+    "benefits"
+   ]
+  },
+  {
+   "q": "लाडकी बहीण योजनेसाठी अर्ज कसा करायचा?",
+   "lang": "mr",
+   "scheme": "mukhyamantri-majhi-ladki-bahin",
+   "sections": [
+    "steps"
+   ]
+  },
+  {
+   "q": "अटल पेन्शन योजनेसाठी वयोमर्यादा किती आहे?",
+   "lang": "mr",
+   "scheme": "atal-pension-yojana",
+   "sections": [
+    "eligibility",
+    "who_for",
+    "overview"
+   ]
+  },
+  {
+   "q": "What is the capital of France?",
+   "lang": "en",
+   "none": true
+  },
+  {
+   "q": "Who won the cricket world cup?",
+   "lang": "en",
+   "none": true
+  },
+  {
+   "q": "How do I get a driving licence?",
+   "lang": "en",
+   "none": true
+  },
+  {
+   "q": "मुझे पासपोर्ट कैसे मिलेगा?",
+   "lang": "hi",
+   "none": true
+  },
+  {
+   "q": "माझे आधार कार्ड हरवले तर काय करू?",
+   "lang": "mr",
+   "none": true
+  },
+  {
+   "q": "What is the monthly pension amount under APY at age 60?",
+   "lang": "en",
+   "none": true
+  }
+ ]
+}

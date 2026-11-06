@@ -36,7 +36,16 @@
   "info_none_links": "We have no verified official link recorded for {scheme}. We do not guess web addresses.",
   "english_note": "(Shown in English: not yet available in {language}.)",
   "source_label": "source",
-  "info_none_about": "We have no description recorded for {scheme}."
+  "info_none_about": "We have no description recorded for {scheme}.",
+  "ask_head": "From our verified records:",
+  "ask_source": "Source: {title} ({locator})",
+  "ask_not_found": "I do not have enough verified information to answer that. Please check the official source for the scheme, or use Browse schemes to see what we have recorded.",
+  "ask_verify": "This is not a final answer. Please confirm it with the official source.",
+  "ask_conf": "Confidence: {level}",
+  "conf_high": "high",
+  "conf_medium": "medium",
+  "conf_low": "low",
+  "ask_links": "Official links we have recorded for {scheme}:"
  },
  "questions": {
   "age_years": "How old are you? (in years)",
