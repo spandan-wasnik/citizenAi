@@ -31,7 +31,8 @@ def run(semantic: bool, threshold: float | None, zmin: float | None = None) -> i
     with session_scope(eng) as s:
         r = build_retriever(s, date.today(), settings)
     r.min_vector_similarity = threshold
-    r.min_vector_z = zmin
+    if zmin is not None:                  # otherwise keep the configured value, so the eval measures what the app does
+        r.min_vector_z = zmin
     mode = "hybrid" if r.vectors is not None else "keyword_only"
     if semantic and mode != "hybrid":
         print("Semantic search could not start (is requirements-ml.txt installed, and is the model downloaded?).")
@@ -78,7 +79,7 @@ def run(semantic: bool, threshold: float | None, zmin: float | None = None) -> i
         if not rank:
             print(f"  MISSED [{c['lang']}] {c['q']}   (names a scheme: {scoped}; best z: {top_z if top_z is None else round(top_z, 2)}; "
                   f"correct passage rank by vector: {vrank})")
-    print(f"\nmode: {mode}   threshold: {threshold}\n")
+    print(f"\nmode: {mode}   min similarity: {threshold}   min z-score: {r.min_vector_z}\n")
     for lang, g in sorted(stats.items()):
         n, none = g["n"], g["none"]
         print(f"{lang}: answerable={n:2d} recall@3={g['hit3'] / n if n else float('nan'):.2f} MRR={g['rr'] / n if n else float('nan'):.2f}"
